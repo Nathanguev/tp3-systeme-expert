@@ -88,13 +88,70 @@
 (defun saisir-ingredients ()
   "Interface de saisie des ingrédients disponibles.
    Permet à l'utilisateur d'entrer les ingrédients et leurs quantités."
-  ;; TODO: Implémenter la saisie des ingrédients
-  ;; - Proposer liste d'ingrédients connus ou saisie libre
-  ;; - Demander quantité pour chaque ingrédient
-  ;; - Valider les entrées (quantité > 0)
-  ;; - Ajouter à la base de faits avec ajouter-fait
-  ;; - Permettre la modification/suppression
-  )
+  
+  (format t "~%=== SAISIE DES INGRÉDIENTS ===~%~%")
+  
+  ;; Récupérer la liste des ingrédients connus
+  (let ((ingredients (lister-tous-ingredients))
+        (nb-saisis 0))
+    
+    (if (null ingredients)
+        (progn
+          (format t "Aucun ingrédient disponible. Chargez d'abord les recettes.~%")
+          (return-from saisir-ingredients))
+        (format t "~D ingrédients disponibles dans le système.~%~%" (length ingredients)))
+    
+    ;; Afficher la liste des ingrédients
+    (format t "Liste des ingrédients :~%")
+    (let ((compteur 1))
+      (dolist (ing ingredients)
+        (format t "  ~2D. ~A~%" compteur (string-capitalize (substitute #\Space #\_ (string ing))))
+        (incf compteur)))
+    
+    (format t "~%Saisissez les ingrédients disponibles.~%")
+    (format t "Pour chaque ingrédient, entrez le numéro et la quantité (0 pour terminer).~%~%")
+    
+    ;; Boucle de saisie
+    (loop
+      (format t "Numéro de l'ingrédient (0 pour terminer) : ")
+      (finish-output)
+      
+      (let* ((input (read-line))
+             (choix (parse-integer input :junk-allowed t)))
+        
+        ;; Terminer la saisie
+        (when (or (null choix) (= choix 0))
+          (format t "~%~D ingrédient(s) saisi(s).~%" nb-saisis)
+          (return))
+        
+        ;; Vérifier que le choix est valide
+        (if (and (> choix 0) (<= choix (length ingredients)))
+            (let ((ingredient (nth (1- choix) ingredients)))
+              
+              ;; Demander la quantité
+              (format t "Quantité de ~A : " 
+                      (string-capitalize (substitute #\Space #\_ (string ingredient))))
+              (finish-output)
+              
+              (let* ((qty-input (read-line))
+                     (quantite (parse-integer qty-input :junk-allowed t)))
+                
+                (if (and quantite (> quantite 0))
+                    (progn
+                      ;; Ajouter le fait
+                      (ajouter-fait ingredient quantite)
+                      (format t "✓ ~A : ~D ajouté~%" 
+                              (string-capitalize (substitute #\Space #\_ (string ingredient)))
+                              quantite)
+                      (incf nb-saisis))
+                    (format t "✗ Quantité invalide. L'ingrédient n'a pas été ajouté.~%"))))
+            
+            (format t "✗ Choix invalide. Veuillez entrer un numéro entre 1 et ~D.~%" 
+                    (length ingredients)))
+        
+        (format t "~%")))
+    
+    (pause)))
 
 (defun proposer-ingredients-connus ()
   "Affiche la liste des ingrédients référencés dans les recettes.
