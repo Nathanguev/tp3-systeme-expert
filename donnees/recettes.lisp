@@ -181,7 +181,8 @@
         ;; Format: (ingredient >= quantite)
         (when (and (listp condition)
                    (= (length condition) 3)
-                   (member (second condition) '(>= <= = > <)))
+                   (member (second condition) '(>= <= > <))
+                   (numberp (third condition)))
           ;; Ajouter l'ingrédient s'il n'est pas déjà dans la liste
           (pushnew (first condition) ingredients))))
     ;; Trier alphabétiquement et retourner
