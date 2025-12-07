@@ -25,6 +25,9 @@
 (defvar *sauvegarde-faits* '()
   "Sauvegarde temporaire de la base de faits pour restauration ultérieure.")
 
+(defvar *sauvegarde-historique* '()
+  "Sauvegarde temporaire de l'historique des faits pour restauration ultérieure.")
+
 ;;; ----------------------------------------------------------------------------
 ;;; INITIALISATION
 ;;; ----------------------------------------------------------------------------
@@ -45,10 +48,7 @@
      - cle : symbole identifiant le fait
      - valeur : valeur associée (nombre ou booléen)
    Retour : la valeur ajoutée"
-  ;; TODO: Implémenter l'ajout avec historique
-  ;; - Vérifier si le fait existe déjà
-  ;; - Enregistrer l'ancienne valeur dans l'historique
-  ;; - Ajouter ou mettre à jour dans *base-faits*
+
   (if (obtenir-fait cle)
     (progn
       (modifier-fait cle valeur)
@@ -81,9 +81,7 @@
    Paramètres :
      - cle : symbole identifiant le fait
    Retour : valeur du fait ou nil si non trouvé"
-  ;; TODO: Implémenter la récupération
-  ;; - Chercher dans *base-faits* avec assoc
-  ;; - Retourner la valeur (cdr) ou nil
+
   (let ((ingredient (assoc cle (cadr (assoc 'ingredients *base-faits*))))
         (materiel (assoc cle (cadr (assoc 'materiel *base-faits*))))
         (filtre (assoc cle (cadr (assoc 'filtres *base-faits*)))))
@@ -101,10 +99,7 @@
      - cle : symbole identifiant le fait
      - nouvelle-valeur : nouvelle valeur à assigner
    Retour : la nouvelle valeur ou nil si le fait n'existe pas"
-  ;; TODO: Implémenter la modification avec historique
-  ;; - Vérifier l'existence du fait
-  ;; - Sauvegarder l'ancienne valeur
-  ;; - Mettre à jour la valeur
+
   (let ((fait (obtenir-fait cle)))
     (if fait
       (progn
@@ -120,7 +115,7 @@
    Paramètres :
      - cle : symbole identifiant le fait
    Retour : t si supprimé, nil si non trouvé"
-  ;; TODO: Implémenter la suppression avec historique
+
   (let ((fait (obtenir-fait cle)))
     (if fait
       (progn
@@ -134,11 +129,6 @@
     )
   )
 )
-(ajouter-fait 'ingredients 'farine 500)
-(ajouter-fait 'ingredients 'sucre 200)
-(ajouter-fait 'materiel 'fouet t)
-(ajouter-fait 'filtres 'vegetarien t)
-(modifier-fait 'sucre 150)
 
 ;;; ----------------------------------------------------------------------------
 ;;; OPÉRATIONS NUMÉRIQUES (pour ordre 0+)
@@ -150,10 +140,7 @@
      - cle : symbole identifiant le fait
      - quantite : quantité à soustraire
    Retour : nouvelle valeur ou nil si impossible"
-  ;; TODO: Implémenter la décrémentation
-  ;; - Vérifier que le fait existe et est numérique
-  ;; - Vérifier que la soustraction est possible (>= 0)
-  ;; - Décrémenter et enregistrer dans l'historique
+
   (let ((fait (obtenir-fait cle)))
     (if (and fait (numberp (cdr fait)) (>= (cdr fait) quantite))
       (progn
@@ -164,15 +151,13 @@
   )
 )
 
-(decremente-fait 'farine 100)
-
 (defun incremente-fait (cle quantite)
   "Incrémente la valeur numérique d'un fait.
    Paramètres :
      - cle : symbole identifiant le fait
      - quantite : quantité à ajouter
    Retour : nouvelle valeur ou nil si impossible"
-  ;; TODO: Implémenter l'incrémentation
+
   (let ((fait (obtenir-fait cle)))
     (if (and fait (numberp (cdr fait)))
       (progn
@@ -182,8 +167,6 @@
       nil)
   )
 )
-
-(incremente-fait 'sucre 50)
 
 ;;; ----------------------------------------------------------------------------
 ;;; COMPARAISONS (pour conditions des règles)
@@ -196,10 +179,7 @@
      - operateur : '>=, '<=, '=, '>, '<
      - valeur : valeur de comparaison
    Retour : t si la comparaison est vraie, nil sinon"
-  ;; TODO: Implémenter la comparaison
-  ;; - Récupérer la valeur du fait
-  ;; - Appliquer l'opérateur de comparaison
-  ;; - Gérer les cas nil et les types non numériques
+
   (let ((fait (obtenir-fait cle)))
     (if fait
       (cond
@@ -217,9 +197,6 @@
   "Affiche la base de faits courante de manière formatée.
    Paramètres :
      - filtrer : optionnel, type de faits à afficher (:ingredients :materiel :filtres)"
-  ;; TODO: Implémenter l'affichage organisé
-  ;; - Grouper par catégorie (ingrédients, matériel, filtres)
-  ;; - Formatter proprement pour l'utilisateur
   (let ((categories '((ingredients . "Ingrédients")
                       (materiel . "Matériel")
                       (filtres . "Filtres"))))
@@ -230,13 +207,9 @@
           (format t "~A : ~A~%" (car fait) (cdr fait))))))
 )
 
-(afficher-base-faits)
-
 (defun afficher-historique ()
   "Affiche l'historique des modifications de la base de faits."
-  ;; TODO: Implémenter l'affichage de l'historique
-  ;; - Parcourir *historique-faits*
-  ;; - Afficher chaque modification avec son contexte
+
   (format t "~%Historique des modifications :~%")
   (dolist (modification *historique-faits*)
     (format t "Action : ~A, Fait : ~A, Ancienne valeur : ~A~%"
@@ -245,8 +218,6 @@
     (format t "Aucune modification enregistrée.~%")
   ))
 
-(afficher-historique)
-
 ;;; ----------------------------------------------------------------------------
 ;;; SAUVEGARDE ET RESTAURATION
 ;;; ----------------------------------------------------------------------------
@@ -254,23 +225,51 @@
 (defun sauvegarder-etat ()
   "Sauvegarde l'état actuel de la base de faits.
    Retour : copie de la base de faits"
-  ;; TODO: Implémenter la sauvegarde
-  ;; - Créer une copie profonde de *base-faits*
+
   (let ((nb-sauvegarde (+ (length *sauvegarde-faits*) 1)))
     (push (list nb-sauvegarde (copy-tree *base-faits*)) *sauvegarde-faits*)
-    (copy-tree *base-faits*))
+    (push (list nb-sauvegarde (copy-tree *historique-faits*)) *sauvegarde-historique*)
+    (format t "État de la base de faits sauvegardé avec l'index ~A.~%" nb-sauvegarde)
+    (copy-tree *base-faits*)
+  )
   )
 
 (defun restaurer-etat (index-etat)
   "Restaure la base de faits à un état sauvegardé.
    Paramètres :
      - etat : état sauvegardé précédemment"
-  ;; TODO: Implémenter la restauration
-  ;; - Remplacer *base-faits* par l'état fourni
-  (let ((etat-sauvegarde (assoc index-etat *sauvegarde-faits*)))
-    (when etat-sauvegarde
+
+  (let ((etat-sauvegarde (assoc index-etat *sauvegarde-faits*))
+        (etat-historique (assoc index-etat *sauvegarde-historique*)))
+    (when (and etat-sauvegarde etat-historique)
       (setf *base-faits* (copy-tree (cadr etat-sauvegarde)))
-      (format t "Base de faits restaurée à l'état ~A.~%" index-etat)))
+      (setf *historique-faits* (copy-tree (cadr etat-historique)))
+      (format t "Base de faits restaurée à l'état ~A.~%" index-etat))
+
+    (copy-tree (cadr etat-sauvegarde)))
 )
+
+; Jeu de test
+(ajouter-fait 'ingredients 'tomate 300)
+(ajouter-fait 'ingredients 'oignon 100)
+(ajouter-fait 'ingredients 'huile-olive 50)
+(ajouter-fait 'materiel 'couteau t)
+(ajouter-fait 'filtres 'gluten-free t)
+(ajouter-fait 'filtres 'vegan t)
+(afficher-base-faits)
+(afficher-historique)
+(modifier-fait 'tomate 150)
+(decremente-fait 'oignon 30)
+(incremente-fait 'huile-olive 20)
+(supprimer-fait 'gluten-free)
+(afficher-base-faits)
+(afficher-historique)
+(sauvegarder-etat)
+(ajouter-fait 'ingredients 'fromage 200)
+(afficher-base-faits)
+(afficher-historique)
+(restaurer-etat 1)
+(afficher-base-faits)
+(afficher-historique)
 
 
