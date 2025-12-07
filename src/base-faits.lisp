@@ -22,6 +22,9 @@
   "Historique des modifications de la base de faits pour traçabilité.
    Structure : liste de triplets (action fait ancienne-valeur)")
 
+(defvar *sauvegarde-faits* '()
+  "Sauvegarde temporaire de la base de faits pour restauration ultérieure.")
+
 ;;; ----------------------------------------------------------------------------
 ;;; INITIALISATION
 ;;; ----------------------------------------------------------------------------
@@ -136,7 +139,7 @@
 (ajouter-fait 'materiel 'fouet t)
 (ajouter-fait 'filtres 'vegetarien t)
 (modifier-fait 'sucre 150)
-(supprimer-fait 'sucre)
+
 ;;; ----------------------------------------------------------------------------
 ;;; OPÉRATIONS NUMÉRIQUES (pour ordre 0+)
 ;;; ----------------------------------------------------------------------------
@@ -151,7 +154,17 @@
   ;; - Vérifier que le fait existe et est numérique
   ;; - Vérifier que la soustraction est possible (>= 0)
   ;; - Décrémenter et enregistrer dans l'historique
+  (let ((fait (obtenir-fait cle)))
+    (if (and fait (numberp (cdr fait)) (>= (cdr fait) quantite))
+      (progn
+        (push (list 'decremente-fait cle (cdr fait)) *historique-faits*)
+        (setf (cdr fait) (- (cdr fait) quantite))
+        (cdr fait))
+      nil)
   )
+)
+
+(decremente-fait 'farine 100)
 
 (defun incremente-fait (cle quantite)
   "Incrémente la valeur numérique d'un fait.
@@ -160,7 +173,17 @@
      - quantite : quantité à ajouter
    Retour : nouvelle valeur ou nil si impossible"
   ;; TODO: Implémenter l'incrémentation
+  (let ((fait (obtenir-fait cle)))
+    (if (and fait (numberp (cdr fait)))
+      (progn
+        (push (list 'incremente-fait cle (cdr fait)) *historique-faits*)
+        (setf (cdr fait) (+ (cdr fait) quantite))
+        (cdr fait))
+      nil)
   )
+)
+
+(incremente-fait 'sucre 50)
 
 ;;; ----------------------------------------------------------------------------
 ;;; COMPARAISONS (pour conditions des règles)
@@ -177,8 +200,15 @@
   ;; - Récupérer la valeur du fait
   ;; - Appliquer l'opérateur de comparaison
   ;; - Gérer les cas nil et les types non numériques
+  (let ((fait (obtenir-fait cle)))
+    (if fait
+      (cond
+        ((and (numberp (cdr fait)) (numberp valeur)) (funcall operateur (cdr fait) valeur))
+        ((eq operateur '=) (equal (cdr fait) valeur))
+      )
+    )
   )
-
+)
 ;;; ----------------------------------------------------------------------------
 ;;; AFFICHAGE ET TRAÇABILITÉ
 ;;; ----------------------------------------------------------------------------
@@ -226,7 +256,13 @@
    Retour : copie de la base de faits"
   ;; TODO: Implémenter la sauvegarde
   ;; - Créer une copie profonde de *base-faits*
+  (let ((nb-sauvegarde (+ (length *sauvegarde-faits*) 1)))
+    (push (list nb-sauvegarde (copy-tree *base-faits*)) *sauvegarde-faits*)
+    (copy-tree *base-faits*))
   )
+
+(sauvegarder-etat)
+(print *sauvegarde-faits*)
 
 (defun restaurer-etat (etat)
   "Restaure la base de faits à un état sauvegardé.
@@ -234,4 +270,5 @@
      - etat : état sauvegardé précédemment"
   ;; TODO: Implémenter la restauration
   ;; - Remplacer *base-faits* par l'état fourni
+
   )
