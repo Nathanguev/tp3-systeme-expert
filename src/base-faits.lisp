@@ -48,22 +48,22 @@
   ;; - Ajouter ou mettre à jour dans *base-faits*
   (if (obtenir-fait cle)
     (progn
-      (push (list 'modifier-fait cle (obtenir-fait cle)) *historique-faits*)
       (modifier-fait cle valeur)
     )
     (cond
           ((eq type 'ingredients)
-            (print (cadr (assoc 'ingredients *base-faits*)))
             (push (cons cle valeur) (cadr (assoc 'ingredients *base-faits*)))
-            (format t "Ingrédient ~A ajouté avec quantité ~A.~%" cle valeur))
+            (format t "Ingrédient ~A ajouté avec quantité ~A.~%" cle valeur)
+            (push (list 'ajouter-fait cle nil) *historique-faits*))
 
           ((eq type 'materiel)
             (push (cons cle valeur) (cadr (assoc 'materiel *base-faits*)))
-            (format t "Matériel ~A ajouté avec état ~A.~%" cle valeur))
-
+            (format t "Matériel ~A ajouté avec état ~A.~%" cle valeur)
+            (push (list 'ajouter-fait cle nil) *historique-faits*))
           ((eq type 'filtres)
             (push (cons cle valeur) (cadr (assoc 'filtres *base-faits*)))
-            (format t "Filtre ~A ajouté avec état ~A.~%" cle valeur))
+            (format t "Filtre ~A ajouté avec état ~A.~%" cle valeur)
+            (push (list 'ajouter-fait cle nil) *historique-faits*))
     ))
 )
 
@@ -77,9 +77,9 @@
   ;; TODO: Implémenter la récupération
   ;; - Chercher dans *base-faits* avec assoc
   ;; - Retourner la valeur (cdr) ou nil
-  (let ((ingredient (assoc cle (cdr (assoc 'ingredients *base-faits*))))
-        (materiel (assoc cle (cdr (assoc 'materiel *base-faits*))))
-        (filtre (assoc cle (cdr (assoc 'filtres *base-faits*)))))
+  (let ((ingredient (assoc cle (cadr (assoc 'ingredients *base-faits*))))
+        (materiel (assoc cle (cadr (assoc 'materiel *base-faits*))))
+        (filtre (assoc cle (cadr (assoc 'filtres *base-faits*)))))
     (cond
       (ingredient (cdr ingredient))
       (materiel (cdr materiel))
@@ -98,9 +98,9 @@
   ;; - Vérifier l'existence du fait
   ;; - Sauvegarder l'ancienne valeur
   ;; - Mettre à jour la valeur
-  (let ((ingredient (assoc cle (cdr (assoc 'ingredients *base-faits*))))
-        (materiel (assoc cle (cdr (assoc 'materiel *base-faits*))))
-        (filtre (assoc cle (cdr (assoc 'filtres *base-faits*)))))
+  (let ((ingredient (assoc cle (cadr (assoc 'ingredients *base-faits*))))
+        (materiel (assoc cle (cadr (assoc 'materiel *base-faits*))))
+        (filtre (assoc cle (cadr (assoc 'filtres *base-faits*)))))
     (cond
       (ingredient
        (push (list 'modifier-fait cle (cdr ingredient)) *historique-faits*)
@@ -188,8 +188,6 @@
           (format t "~A : ~A~%" (car fait) (cdr fait))))))
 )
 
-(afficher-base-faits)
-
 (defun afficher-historique ()
   "Affiche l'historique des modifications de la base de faits."
   ;; TODO: Implémenter l'affichage de l'historique
@@ -202,8 +200,6 @@
   (when (null *historique-faits*)
     (format t "Aucune modification enregistrée.~%")
   ))
-
-  (afficher-historique)
 
 ;;; ----------------------------------------------------------------------------
 ;;; SAUVEGARDE ET RESTAURATION
