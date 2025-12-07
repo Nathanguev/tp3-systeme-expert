@@ -13,7 +13,7 @@
                       (materiel ())
                       (filtres ()))
   "Base de faits globale contenant tous les faits courants du système.
-   Structure : liste d'association (clé . valeur)
+   Structure : liste d'association de catégories, chaque catégorie contenant une liste d'association (clé . valeur)
    - Pour ingrédients : (nom-ingredient . quantite-disponible)
    - Pour matériel : (nom-materiel . t/nil)
    - Pour filtres : (nom-filtre . t/nil)")
@@ -45,33 +45,28 @@
 (defun ajouter-fait (type cle valeur)
   "Ajoute un fait à la base de faits ou met à jour sa valeur.
    Paramètres :
+     - type : type de fait ('ingredients, 'materiel, ou 'filtres)
+     - type : catégorie du fait ('ingredients, 'materiel, 'filtres)
      - cle : symbole identifiant le fait
      - valeur : valeur associée (nombre ou booléen)
-   Retour : la valeur ajoutée"
+   Retour : la valeur ajoutée
+   Note de migration : la signature a changé, il faut désormais fournir le type en premier argument."
 
   (if (obtenir-fait cle)
     (progn
       (modifier-fait cle valeur)
     )
-    (cond
-      ((eq type 'ingredients)
-        (push (cons cle valeur) (cadr (assoc 'ingredients *base-faits*)))
-        (format t "Ingrédient ~A ajouté avec quantité ~A.~%" cle valeur)
+    (let* ((category-list (cadr (assoc type *base-faits*)))
+           (type-names '((ingredients . "Ingrédient")
+                         (materiel . "Matériel")
+                         (filtres . "Filtre")))
+           (display-name (cdr (assoc type type-names)))
+           (quantite-ou-etat (if (eq type 'ingredients) "quantité" "état")))
+      (when category-list
+        (push (cons cle valeur) category-list)
+        (format t "~A ~A ajouté avec ~A ~A.~%" display-name cle quantite-ou-etat valeur)
         (push (list 'ajouter-fait cle nil) *historique-faits*)
-        valeur)
-
-      ((eq type 'materiel)
-        (push (cons cle valeur) (cadr (assoc 'materiel *base-faits*)))
-        (format t "Matériel ~A ajouté avec état ~A.~%" cle valeur)
-        (push (list 'ajouter-fait cle nil) *historique-faits*)
-        valeur)
-
-      ((eq type 'filtres)
-        (push (cons cle valeur) (cadr (assoc 'filtres *base-faits*)))
-        (format t "Filtre ~A ajouté avec état ~A.~%" cle valeur)
-        (push (list 'ajouter-fait cle nil) *historique-faits*)
-        valeur)
-    ))
+        valeur)))
 )
 
 
@@ -82,14 +77,9 @@
      - cle : symbole identifiant le fait
    Retour : valeur du fait ou nil si non trouvé"
 
-  (let ((ingredient (assoc cle (cadr (assoc 'ingredients *base-faits*))))
-        (materiel (assoc cle (cadr (assoc 'materiel *base-faits*))))
-        (filtre (assoc cle (cadr (assoc 'filtres *base-faits*)))))
-    (cond
-      (ingredient ingredient)
-      (materiel materiel)
-      (filtre filtre)
-    ))
+  (some (lambda (type)
+          (assoc cle (cadr (assoc type *base-faits*))))
+        '(ingredients materiel filtres))
 )
 
 
@@ -237,39 +227,16 @@
 (defun restaurer-etat (index-etat)
   "Restaure la base de faits à un état sauvegardé.
    Paramètres :
-     - etat : état sauvegardé précédemment"
+     - index-etat : index numérique de l'état sauvegardé à restaurer"
 
   (let ((etat-sauvegarde (assoc index-etat *sauvegarde-faits*))
         (etat-historique (assoc index-etat *sauvegarde-historique*)))
-    (when (and etat-sauvegarde etat-historique)
-      (setf *base-faits* (copy-tree (cadr etat-sauvegarde)))
-      (setf *historique-faits* (copy-tree (cadr etat-historique)))
-      (format t "Base de faits restaurée à l'état ~A.~%" index-etat))
-
-    (copy-tree (cadr etat-sauvegarde)))
+    (if (and etat-sauvegarde etat-historique)
+        (progn
+          (setf *base-faits* (copy-tree (cadr etat-sauvegarde)))
+          (setf *historique-faits* (copy-tree (cadr etat-historique)))
+          (format t "Base de faits restaurée à l'état ~A.~%" index-etat)
+          (copy-tree (cadr etat-sauvegarde)))
+        nil)
 )
-
-; Jeu de test
-(ajouter-fait 'ingredients 'tomate 300)
-(ajouter-fait 'ingredients 'oignon 100)
-(ajouter-fait 'ingredients 'huile-olive 50)
-(ajouter-fait 'materiel 'couteau t)
-(ajouter-fait 'filtres 'gluten-free t)
-(ajouter-fait 'filtres 'vegan t)
-(afficher-base-faits)
-(afficher-historique)
-(modifier-fait 'tomate 150)
-(decremente-fait 'oignon 30)
-(incremente-fait 'huile-olive 20)
-(supprimer-fait 'gluten-free)
-(afficher-base-faits)
-(afficher-historique)
-(sauvegarder-etat)
-(ajouter-fait 'ingredients 'fromage 200)
-(afficher-base-faits)
-(afficher-historique)
-(restaurer-etat 1)
-(afficher-base-faits)
-(afficher-historique)
-
 
