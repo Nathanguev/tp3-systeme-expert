@@ -55,28 +55,41 @@
      - profondeur : niveau de composition (défaut: 0)
      - metadata : liste de propriétés supplémentaires
    Retour : la règle créée"
-  ;; TODO: Implémenter l'ajout de règle
-  ;; - Créer une structure REGLE
-  ;; - Vérifier l'unicité du nom
-  ;; - Ajouter à *base-regles*
-  )
+  ;; Vérifier si une règle avec ce nom existe déjà
+  (let ((regle-existante (obtenir-regle nom)))
+    (when regle-existante
+      (warn "La règle ~A existe déjà et sera remplacée." nom)
+      (supprimer-regle nom)))
+  
+  ;; Créer la nouvelle règle
+  (let ((nouvelle-regle (make-regle
+                          :nom nom
+                          :description description
+                          :conditions conditions
+                          :conclusion conclusion
+                          :actions actions
+                          :priorite priorite
+                          :profondeur profondeur
+                          :metadata metadata)))
+    ;; Ajouter à la base de règles
+    (push nouvelle-regle *base-regles*)
+    nouvelle-regle))
 
 (defun obtenir-regle (nom)
   "Récupère une règle par son nom.
    Paramètres :
      - nom : symbole identifiant la règle
    Retour : structure REGLE ou nil"
-  ;; TODO: Implémenter la récupération
-  ;; - Chercher dans *base-regles*
-  )
+  (find nom *base-regles* :key #'regle-nom :test #'eq))
 
 (defun supprimer-regle (nom)
   "Supprime une règle de la base de règles.
    Paramètres :
      - nom : symbole identifiant la règle
    Retour : t si supprimée, nil sinon"
-  ;; TODO: Implémenter la suppression
-  )
+  (let ((ancienne-taille (length *base-regles*)))
+    (setf *base-regles* (remove nom *base-regles* :key #'regle-nom :test #'eq))
+    (/= ancienne-taille (length *base-regles*))))
 
 ;;; ----------------------------------------------------------------------------
 ;;; ÉVALUATION DES CONDITIONS
