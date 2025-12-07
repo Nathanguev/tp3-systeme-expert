@@ -89,6 +89,23 @@
   ;; - Vérifier l'existence du fait
   ;; - Sauvegarder l'ancienne valeur
   ;; - Mettre à jour la valeur
+  (let ((ingredient (assoc cle (cdr (assoc 'ingredients *base-faits*))))
+        (materiel (assoc cle (cdr (assoc 'materiel *base-faits*))))
+        (filtre (assoc cle (cdr (assoc 'filtres *base-faits*)))))
+    (cond
+      (ingredient
+       (push (list 'modifier-fait cle (cdr ingredient)) *historique-faits*)
+       (setf (cdr ingredient) nouvelle-valeur)
+       nouvelle-valeur)
+      (materiel
+       (push (list 'modifier-fait cle (cdr materiel)) *historique-faits*)
+       (setf (cdr materiel) nouvelle-valeur)
+       nouvelle-valeur)
+      (filtre
+       (push (list 'modifier-fait cle (cdr filtre)) *historique-faits*)
+       (setf (cdr filtre) nouvelle-valeur)
+       nouvelle-valeur)
+      (t nil)))
 )
 
 
