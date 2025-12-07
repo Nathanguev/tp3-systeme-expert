@@ -18,11 +18,11 @@
   ;; Initialiser la base de règles
   (initialiser-base-regles)
   
-  ;; Charger les recettes finales (profondeur 0) en premier
-  (charger-recettes-finales)
-  
-  ;; Charger les compositions intermédiaires (profondeur 1+) ensuite
+  ;; Charger les compositions intermédiaires (profondeur 1+)
   (charger-compositions-intermediaires)
+  
+  ;; Charger les recettes finales (profondeur 0)
+  (charger-recettes-finales)
   
   (format t "~D règles chargées avec succès.~%" (length *base-regles*)))
 

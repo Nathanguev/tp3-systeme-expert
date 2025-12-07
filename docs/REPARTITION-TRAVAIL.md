@@ -49,7 +49,7 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
 
 **Tâches** :
 
-- [ ] Implémenter `ajouter-regle(...)`
+- [x] Implémenter `ajouter-regle(...)` → **DÉJÀ FAIT**
 - [ ] Implémenter `evaluer-condition(condition)` → utilise `comparer-fait`
 - [ ] Implémenter `evaluer-conditions(conditions)` → conjonction ET
 - [ ] Implémenter `regles-candidates()` → pour chaînage avant
@@ -104,7 +104,7 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
   - Format : incluant saisons, type, végétarien, profondeur=0
 - [x] Implémenter `lister-tous-ingredients()`
 - [x] Implémenter `lister-tout-materiel()`
-- [ ] Tester le chargement (vérifier 21 règles créées)
+- [x] Tester le chargement (vérifier 21 règles créées)
 
 **Dépendances** : `gestion-regles.lisp` (pour `ajouter-regle`)
 **Fichiers touchés** : `donnees/recettes.lisp`, `src/base-regles.lisp` (données brutes)
