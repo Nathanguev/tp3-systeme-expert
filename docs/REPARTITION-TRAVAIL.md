@@ -88,30 +88,30 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
 
 #### Module 4 : Données des recettes (`donnees/recettes.lisp`)
 
-**Durée estimée** : 2-3h  
+**Durée estimée** : 2-3h
 **Complexité** : ★★
 
 **Tâches** :
 
-- [ ] Implémenter `charger-recettes()`
-- [ ] Implémenter `charger-compositions-intermediaires()`
+- [x] Implémenter `charger-recettes()`
+- [x] Implémenter `charger-compositions-intermediaires()`
   - Parser `*donnees-compositions*` (7 compositions)
   - Créer les règles avec `ajouter-regle`
   - Format : nom, conditions (ingrédients + matériel), conclusion, profondeur=1
-- [ ] Implémenter `charger-recettes-finales()`
+- [x] Implémenter `charger-recettes-finales()`
   - Parser `*donnees-recettes*` (14 recettes)
   - Créer les règles avec conditions + filtres
   - Format : incluant saisons, type, végétarien, profondeur=0
-- [ ] Implémenter `lister-tous-ingredients()`
-- [ ] Implémenter `lister-tout-materiel()`
+- [x] Implémenter `lister-tous-ingredients()`
+- [x] Implémenter `lister-tout-materiel()`
 - [ ] Tester le chargement (vérifier 21 règles créées)
 
-**Dépendances** : `gestion-regles.lisp` (pour `ajouter-regle`)  
+**Dépendances** : `gestion-regles.lisp` (pour `ajouter-regle`)
 **Fichiers touchés** : `donnees/recettes.lisp`, `src/base-regles.lisp` (données brutes)
 
 #### Module 5 : Interface utilisateur (`src/interface.lisp`)
 
-**Durée estimée** : 3-4h  
+**Durée estimée** : 3-4h
 **Complexité** : ★★★
 
 **Tâches** :
