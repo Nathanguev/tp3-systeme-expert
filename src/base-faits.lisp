@@ -9,7 +9,9 @@
 ;;; STRUCTURES DE DONNÉES
 ;;; ----------------------------------------------------------------------------
 
-(defvar *base-faits* nil
+(defvar *base-faits* ((ingredients nil)
+                      (materiel nil)
+                      (filtres nil))
   "Base de faits globale contenant tous les faits courants du système.
    Structure : liste d'association (clé . valeur)
    - Pour ingrédients : (nom-ingredient . quantite-disponible)
@@ -34,7 +36,7 @@
 ;;; OPÉRATIONS DE BASE SUR LES FAITS
 ;;; ----------------------------------------------------------------------------
 
-(defun ajouter-fait (cle valeur)
+(defun ajouter-fait (type cle valeur)
   "Ajoute un fait à la base de faits ou met à jour sa valeur.
    Paramètres :
      - cle : symbole identifiant le fait
@@ -44,7 +46,21 @@
   ;; - Vérifier si le fait existe déjà
   ;; - Enregistrer l'ancienne valeur dans l'historique
   ;; - Ajouter ou mettre à jour dans *base-faits*
-  )
+  (if (obtenir-fait cle)
+    (progn
+      (push (list 'modifier-fait cle (obtenir-fait cle)) *historique-faits*)
+      (modifier-fait cle valeur)
+    )
+    (cond
+          ((eq type "ingredients") (push (cons cle valeur) (cdr (assoc 'ingredients *base-faits*))) (format t "Ingrédient ~A ajouté avec quantité ~A.~%" cle valeur))
+          ((eq type "materiel") (push (cons cle valeur) (cdr (assoc 'materiel *base-faits*))) (format t "Matériel ~A ajouté avec état ~A.~%" cle valeur))
+          ((eq type "filtres") (push (cons cle valeur) (cdr (assoc 'filtres *base-faits*))) (format t "Filtre ~A ajouté avec état ~A.~%" cle valeur))
+    ))
+
+)
+
+(ajouter-fait "ingredients" 'tomates 5)
+
 
 (defun obtenir-fait (cle)
   "Récupère la valeur d'un fait dans la base de faits.
@@ -54,15 +70,6 @@
   ;; TODO: Implémenter la récupération
   ;; - Chercher dans *base-faits* avec assoc
   ;; - Retourner la valeur (cdr) ou nil
-  )
-
-(defun fait-existe-p (cle)
-  "Vérifie si un fait existe dans la base de faits.
-   Paramètres :
-     - cle : symbole identifiant le fait
-   Retour : t si le fait existe, nil sinon"
-  ;; TODO: Implémenter la vérification
-  ;; - Utiliser assoc pour vérifier la présence
   )
 
 (defun modifier-fait (cle nouvelle-valeur)
@@ -138,6 +145,7 @@
   ;; TODO: Implémenter l'affichage organisé
   ;; - Grouper par catégorie (ingrédients, matériel, filtres)
   ;; - Formatter proprement pour l'utilisateur
+
   )
 
 (defun afficher-historique ()
