@@ -59,8 +59,6 @@
 
 )
 
-(ajouter-fait "ingredients" 'tomates 5)
-
 
 (defun obtenir-fait (cle)
   "Récupère la valeur d'un fait dans la base de faits.
@@ -70,7 +68,16 @@
   ;; TODO: Implémenter la récupération
   ;; - Chercher dans *base-faits* avec assoc
   ;; - Retourner la valeur (cdr) ou nil
-  )
+  (let ((ingredient (assoc cle (cdr (assoc 'ingredients *base-faits*))))
+        (materiel (assoc cle (cdr (assoc 'materiel *base-faits*))))
+        (filtre (assoc cle (cdr (assoc 'filtres *base-faits*)))))
+    (cond
+      (ingredient (cdr ingredient))
+      (materiel (cdr materiel))
+      (filtre (cdr filtre))
+      (t nil)))
+)
+
 
 (defun modifier-fait (cle nouvelle-valeur)
   "Modifie la valeur d'un fait existant (utilisé par les règles 0+).
@@ -82,7 +89,8 @@
   ;; - Vérifier l'existence du fait
   ;; - Sauvegarder l'ancienne valeur
   ;; - Mettre à jour la valeur
-  )
+)
+
 
 (defun supprimer-fait (cle)
   "Supprime un fait de la base de faits.
