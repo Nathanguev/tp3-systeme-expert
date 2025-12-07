@@ -117,27 +117,27 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
 **Tâches** :
 
 - [x] `interface-principale()` → **DÉJÀ FAIT**
-- [ ] Implémenter `saisir-ingredients()`
+- [x] Implémenter `saisir-ingredients()`
   - Utiliser `lister-tous-ingredients()` pour proposer liste
   - Demander quantité pour chaque ingrédient
   - Appeler `ajouter-fait(ingredient, quantite)`
-- [ ] Implémenter `saisir-materiel()`
+- [x] Implémenter `saisir-materiel()`
   - Utiliser `lister-tout-materiel()` pour proposer liste
   - Sélection multiple
   - Appeler `ajouter-fait(materiel, t)`
-- [ ] Implémenter `configurer-filtres()`
+- [x] Implémenter `configurer-filtres()`
   - Demander végétarien (oui/non)
   - Demander saisons (sélection multiple)
   - Demander types (sélection multiple)
   - Ajouter faits filtres
-- [ ] Implémenter `lancer-recherche-recettes()`
+- [x] Implémenter `lancer-recherche-recettes()`
   - Appeler `chainage-avant()`
   - Afficher recettes réalisables
   - Proposer d'afficher la trace
-- [ ] Implémenter `afficher-recettes-realisables(recettes)`
+- [x] Implémenter `afficher-recettes-realisables(recettes)`
   - Grouper par type (entrée/plat/dessert)
   - Afficher propriétés
-- [ ] Implémenter utilitaires : `lire-entier()`, `lire-oui-non()`, `lire-choix-multiple()`
+- [x] Implémenter utilitaires : `lire-entier()`, `lire-oui-non()`, `lire-choix-multiple()`
 
 **Dépendances** : `moteur.lisp` (pour chaînage-avant), `donnees/recettes.lisp` (pour listes)  
 **Fichiers touchés** : `src/interface.lisp`
