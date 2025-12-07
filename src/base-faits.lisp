@@ -51,19 +51,23 @@
       (modifier-fait cle valeur)
     )
     (cond
-          ((eq type 'ingredients)
-            (push (cons cle valeur) (cadr (assoc 'ingredients *base-faits*)))
-            (format t "Ingrédient ~A ajouté avec quantité ~A.~%" cle valeur)
-            (push (list 'ajouter-fait cle nil) *historique-faits*))
+      ((eq type 'ingredients)
+        (push (cons cle valeur) (cadr (assoc 'ingredients *base-faits*)))
+        (format t "Ingrédient ~A ajouté avec quantité ~A.~%" cle valeur)
+        (push (list 'ajouter-fait cle nil) *historique-faits*)
+        cle)
 
-          ((eq type 'materiel)
-            (push (cons cle valeur) (cadr (assoc 'materiel *base-faits*)))
-            (format t "Matériel ~A ajouté avec état ~A.~%" cle valeur)
-            (push (list 'ajouter-fait cle nil) *historique-faits*))
-          ((eq type 'filtres)
-            (push (cons cle valeur) (cadr (assoc 'filtres *base-faits*)))
-            (format t "Filtre ~A ajouté avec état ~A.~%" cle valeur)
-            (push (list 'ajouter-fait cle nil) *historique-faits*))
+      ((eq type 'materiel)
+        (push (cons cle valeur) (cadr (assoc 'materiel *base-faits*)))
+        (format t "Matériel ~A ajouté avec état ~A.~%" cle valeur)
+        (push (list 'ajouter-fait cle nil) *historique-faits*)
+        cle)
+
+      ((eq type 'filtres)
+        (push (cons cle valeur) (cadr (assoc 'filtres *base-faits*)))
+        (format t "Filtre ~A ajouté avec état ~A.~%" cle valeur)
+        (push (list 'ajouter-fait cle nil) *historique-faits*)
+        cle)
     ))
 )
 
@@ -81,10 +85,10 @@
         (materiel (assoc cle (cadr (assoc 'materiel *base-faits*))))
         (filtre (assoc cle (cadr (assoc 'filtres *base-faits*)))))
     (cond
-      (ingredient (cdr ingredient))
-      (materiel (cdr materiel))
-      (filtre (cdr filtre))
-      (t nil)))
+      (ingredient ingredient)
+      (materiel materiel)
+      (filtre filtre)
+    ))
 )
 
 
@@ -98,23 +102,10 @@
   ;; - Vérifier l'existence du fait
   ;; - Sauvegarder l'ancienne valeur
   ;; - Mettre à jour la valeur
-  (let ((ingredient (assoc cle (cadr (assoc 'ingredients *base-faits*))))
-        (materiel (assoc cle (cadr (assoc 'materiel *base-faits*))))
-        (filtre (assoc cle (cadr (assoc 'filtres *base-faits*)))))
-    (cond
-      (ingredient
-       (push (list 'modifier-fait cle (cdr ingredient)) *historique-faits*)
-       (setf (cdr ingredient) nouvelle-valeur)
-       nouvelle-valeur)
-      (materiel
-       (push (list 'modifier-fait cle (cdr materiel)) *historique-faits*)
-       (setf (cdr materiel) nouvelle-valeur)
-       nouvelle-valeur)
-      (filtre
-       (push (list 'modifier-fait cle (cdr filtre)) *historique-faits*)
-       (setf (cdr filtre) nouvelle-valeur)
-       nouvelle-valeur)
-      (t nil)))
+  (let ((fait (obtenir-fait cle)))
+    (push (list 'modifier-fait cle (cdr fait)) *historique-faits*)
+    (setf (cdr fait) nouvelle-valeur)
+    nouvelle-valeur)
 )
 
 (defun supprimer-fait (cle)
@@ -123,8 +114,31 @@
      - cle : symbole identifiant le fait
    Retour : t si supprimé, nil si non trouvé"
   ;; TODO: Implémenter la suppression avec historique
-  )
+  (let ((ingredient (assoc cle (cadr (assoc 'ingredients *base-faits*))))
+        (materiel (assoc cle (cadr (assoc 'materiel *base-faits*))))
+        (filtre (assoc cle (cadr (assoc 'filtres *base-faits*)))))
+    (cond
+      (ingredient
+       (push (list 'supprimer-fait cle (cdr ingredient)) *historique-faits*)
+       (setf (cadr (assoc 'ingredients *base-faits*))
+             (remove ingredient (cadr (assoc 'ingredients *base-faits*))))
+       t)
 
+      (materiel
+       (modifier-fait cle nil)
+       t)
+
+      (filtre
+       (modifier-fait cle nil)
+       t)
+    ))
+)
+(ajouter-fait 'ingredients 'farine 500)
+(ajouter-fait 'ingredients 'sucre 200)
+(ajouter-fait 'materiel 'fouet t)
+(ajouter-fait 'filtres 'vegetarien t)
+(modifier-fait 'sucre 150)
+(supprimer-fait 'fouet)
 ;;; ----------------------------------------------------------------------------
 ;;; OPÉRATIONS NUMÉRIQUES (pour ordre 0+)
 ;;; ----------------------------------------------------------------------------
@@ -188,6 +202,8 @@
           (format t "~A : ~A~%" (car fait) (cdr fait))))))
 )
 
+(afficher-base-faits)
+
 (defun afficher-historique ()
   "Affiche l'historique des modifications de la base de faits."
   ;; TODO: Implémenter l'affichage de l'historique
@@ -200,6 +216,8 @@
   (when (null *historique-faits*)
     (format t "Aucune modification enregistrée.~%")
   ))
+
+(afficher-historique)
 
 ;;; ----------------------------------------------------------------------------
 ;;; SAUVEGARDE ET RESTAURATION
