@@ -9,16 +9,16 @@
 ;;; STRUCTURES DE DONNÉES
 ;;; ----------------------------------------------------------------------------
 
-(defvar *base-faits* '((ingredients nil)
-                      (materiel nil)
-                      (filtres nil))
+(defvar *base-faits* '((ingredients ())
+                      (materiel ())
+                      (filtres ()))
   "Base de faits globale contenant tous les faits courants du système.
    Structure : liste d'association (clé . valeur)
    - Pour ingrédients : (nom-ingredient . quantite-disponible)
    - Pour matériel : (nom-materiel . t/nil)
    - Pour filtres : (nom-filtre . t/nil)")
 
-(defvar *historique-faits* nil
+(defvar *historique-faits* '()
   "Historique des modifications de la base de faits pour traçabilité.
    Structure : liste de triplets (action fait ancienne-valeur)")
 
@@ -52,11 +52,21 @@
       (modifier-fait cle valeur)
     )
     (cond
-          ((eq type "ingredients") (push (cons cle valeur) (cdr (assoc 'ingredients *base-faits*))) (format t "Ingrédient ~A ajouté avec quantité ~A.~%" cle valeur))
-          ((eq type "materiel") (push (cons cle valeur) (cdr (assoc 'materiel *base-faits*))) (format t "Matériel ~A ajouté avec état ~A.~%" cle valeur))
-          ((eq type "filtres") (push (cons cle valeur) (cdr (assoc 'filtres *base-faits*))) (format t "Filtre ~A ajouté avec état ~A.~%" cle valeur))
+          ((eq type 'ingredients)
+            (print (cadr (assoc 'ingredients *base-faits*)))
+            (push (cons cle valeur) (cadr (assoc 'ingredients *base-faits*)))
+            (format t "Ingrédient ~A ajouté avec quantité ~A.~%" cle valeur))
+
+          ((eq type 'materiel)
+            (push (cons cle valeur) (cadr (assoc 'materiel *base-faits*)))
+            (format t "Matériel ~A ajouté avec état ~A.~%" cle valeur))
+
+          ((eq type 'filtres)
+            (push (cons cle valeur) (cadr (assoc 'filtres *base-faits*)))
+            (format t "Filtre ~A ajouté avec état ~A.~%" cle valeur))
     ))
 )
+
 
 
 (defun obtenir-fait (cle)
@@ -106,10 +116,6 @@
        nouvelle-valeur)
       (t nil)))
 )
-
-(ajouter-fait "ingredients" 'tomates 5)
-(print *base-faits*)
-
 
 (defun supprimer-fait (cle)
   "Supprime un fait de la base de faits.
@@ -178,7 +184,7 @@
     (dolist (cat categories)
       (when (or (null filtrer) (eq filtrer (car cat)))
         (format t "~%--- ~A ---~%" (cdr cat))
-        (dolist (fait (cdr (assoc (car cat) *base-faits*)))
+        (dolist (fait (cadr (assoc (car cat) *base-faits*)))
           (format t "~A : ~A~%" (car fait) (cdr fait))))))
 )
 
@@ -189,7 +195,15 @@
   ;; TODO: Implémenter l'affichage de l'historique
   ;; - Parcourir *historique-faits*
   ;; - Afficher chaque modification avec son contexte
-  )
+  (format t "~%Historique des modifications :~%")
+  (dolist (modification *historique-faits*)
+    (format t "Action : ~A, Fait : ~A, Ancienne valeur : ~A~%"
+            (first modification) (second modification) (third modification)))
+  (when (null *historique-faits*)
+    (format t "Aucune modification enregistrée.~%")
+  ))
+
+  (afficher-historique)
 
 ;;; ----------------------------------------------------------------------------
 ;;; SAUVEGARDE ET RESTAURATION
