@@ -9,7 +9,7 @@
 ;;; STRUCTURES DE DONNÉES
 ;;; ----------------------------------------------------------------------------
 
-(defvar *base-faits* ((ingredients nil)
+(defvar *base-faits* '((ingredients nil)
                       (materiel nil)
                       (filtres nil))
   "Base de faits globale contenant tous les faits courants du système.
@@ -56,7 +56,6 @@
           ((eq type "materiel") (push (cons cle valeur) (cdr (assoc 'materiel *base-faits*))) (format t "Matériel ~A ajouté avec état ~A.~%" cle valeur))
           ((eq type "filtres") (push (cons cle valeur) (cdr (assoc 'filtres *base-faits*))) (format t "Filtre ~A ajouté avec état ~A.~%" cle valeur))
     ))
-
 )
 
 
@@ -107,6 +106,9 @@
        nouvelle-valeur)
       (t nil)))
 )
+
+(ajouter-fait "ingredients" 'tomates 5)
+(print *base-faits*)
 
 
 (defun supprimer-fait (cle)
@@ -170,8 +172,17 @@
   ;; TODO: Implémenter l'affichage organisé
   ;; - Grouper par catégorie (ingrédients, matériel, filtres)
   ;; - Formatter proprement pour l'utilisateur
+  (let ((categories '((ingredients . "Ingrédients")
+                      (materiel . "Matériel")
+                      (filtres . "Filtres"))))
+    (dolist (cat categories)
+      (when (or (null filtrer) (eq filtrer (car cat)))
+        (format t "~%--- ~A ---~%" (cdr cat))
+        (dolist (fait (cdr (assoc (car cat) *base-faits*)))
+          (format t "~A : ~A~%" (car fait) (cdr fait))))))
+)
 
-  )
+(afficher-base-faits)
 
 (defun afficher-historique ()
   "Affiche l'historique des modifications de la base de faits."
