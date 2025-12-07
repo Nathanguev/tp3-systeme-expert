@@ -261,14 +261,16 @@
     (copy-tree *base-faits*))
   )
 
-(sauvegarder-etat)
-(print *sauvegarde-faits*)
-
-(defun restaurer-etat (etat)
+(defun restaurer-etat (index-etat)
   "Restaure la base de faits à un état sauvegardé.
    Paramètres :
      - etat : état sauvegardé précédemment"
   ;; TODO: Implémenter la restauration
   ;; - Remplacer *base-faits* par l'état fourni
+  (let ((etat-sauvegarde (assoc index-etat *sauvegarde-faits*)))
+    (when etat-sauvegarde
+      (setf *base-faits* (copy-tree (cadr etat-sauvegarde)))
+      (format t "Base de faits restaurée à l'état ~A.~%" index-etat)))
+)
 
-  )
+
