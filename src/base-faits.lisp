@@ -13,7 +13,7 @@
                       (materiel ())
                       (filtres ()))
   "Base de faits globale contenant tous les faits courants du système.
-   Structure : liste d'association (clé . valeur)
+   Structure : liste d'association de catégories, chaque catégorie contenant une liste d'association (clé . valeur)
    - Pour ingrédients : (nom-ingredient . quantite-disponible)
    - Pour matériel : (nom-materiel . t/nil)
    - Pour filtres : (nom-filtre . t/nil)")
