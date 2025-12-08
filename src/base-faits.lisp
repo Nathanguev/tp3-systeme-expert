@@ -229,7 +229,7 @@
 (defun restaurer-etat (index-etat)
   "Restaure la base de faits à un état sauvegardé.
    Paramètres :
-     - etat : état sauvegardé précédemment"
+     - index-etat : index numérique de l'état sauvegardé à restaurer"
 
   (let ((etat-sauvegarde (assoc index-etat *sauvegarde-faits*))
         (etat-historique (assoc index-etat *sauvegarde-historique*)))
