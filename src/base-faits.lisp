@@ -53,25 +53,17 @@
     (progn
       (modifier-fait cle valeur)
     )
-    (cond
-      ((eq type 'ingredients)
-        (push (cons cle valeur) (cadr (assoc 'ingredients *base-faits*)))
-        (format t "Ingrédient ~A ajouté avec quantité ~A.~%" cle valeur)
+    (let* ((category-list (cadr (assoc type *base-faits*)))
+           (type-names '((ingredients . "Ingrédient")
+                         (materiel . "Matériel")
+                         (filtres . "Filtre")))
+           (display-name (cdr (assoc type type-names)))
+           (quantite-ou-etat (if (eq type 'ingredients) "quantité" "état")))
+      (when category-list
+        (push (cons cle valeur) category-list)
+        (format t "~A ~A ajouté avec ~A ~A.~%" display-name cle quantite-ou-etat valeur)
         (push (list 'ajouter-fait cle nil) *historique-faits*)
-        valeur)
-
-      ((eq type 'materiel)
-        (push (cons cle valeur) (cadr (assoc 'materiel *base-faits*)))
-        (format t "Matériel ~A ajouté avec état ~A.~%" cle valeur)
-        (push (list 'ajouter-fait cle nil) *historique-faits*)
-        valeur)
-
-      ((eq type 'filtres)
-        (push (cons cle valeur) (cadr (assoc 'filtres *base-faits*)))
-        (format t "Filtre ~A ajouté avec état ~A.~%" cle valeur)
-        (push (list 'ajouter-fait cle nil) *historique-faits*)
-        valeur)
-    ))
+        valeur)))
 )
 
 
