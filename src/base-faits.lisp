@@ -46,7 +46,6 @@
   "Ajoute un fait à la base de faits ou met à jour sa valeur.
    Paramètres :
      - type : type de fait ('ingredients, 'materiel, ou 'filtres)
-     - type : catégorie du fait ('ingredients, 'materiel, 'filtres)
      - cle : symbole identifiant le fait
      - valeur : valeur associée (nombre ou booléen)
    Retour : la valeur ajoutée
@@ -58,7 +57,7 @@
         (when categorie
             (progn
               (push (cons cle valeur) (cadr categorie))
-              (format t "Ajout de ~A ajouté avec la valeur ~A.~%" cle valeur)
+              (format t "~A ajouté avec la valeur ~A.~%" cle valeur)
               (push (list 'ajouter-fait cle nil) *historique-faits*)
               valeur)
         )
@@ -75,7 +74,7 @@
    Retour : valeur du fait ou nil si non trouvé"
 
   (some (lambda (type)
-          (assoc cle (cadr (assoc type *base-faits*))))
+          (cdr (assoc cle (cadr (assoc type *base-faits*)))))
         '(ingredients materiel filtres))
 )
 
@@ -230,11 +229,11 @@
   (let ((etat-sauvegarde (assoc index-etat *sauvegarde-faits*))
         (etat-historique (assoc index-etat *sauvegarde-historique*)))
     (if (and etat-sauvegarde etat-historique)
-        (progn
-      (setf *base-faits* (copy-tree (cadr etat-sauvegarde)))
-      (setf *historique-faits* (copy-tree (cadr etat-historique)))
-      (format t "Base de faits restaurée à l'état ~A.~%" index-etat)
-      (copy-tree (cadr etat-sauvegarde)))
+      (progn
+        (setf *base-faits* (copy-tree (cadr etat-sauvegarde)))
+        (setf *historique-faits* (copy-tree (cadr etat-historique)))
+        (format t "Base de faits restaurée à l'état ~A.~%" index-etat)
+        (copy-tree (cadr etat-sauvegarde)))
     nil)
 ))
 
