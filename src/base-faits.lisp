@@ -53,20 +53,17 @@
    Note de migration : la signature a changé, il faut désormais fournir le type en premier argument."
 
   (if (obtenir-fait cle)
-    (progn
       (modifier-fait cle valeur)
+      (let ((categorie (assoc type *base-faits*)))
+        (when categorie
+            (progn
+              (push (cons cle valeur) (cadr categorie))
+              (format t "Ajout de ~A ajouté avec la valeur ~A.~%" cle valeur)
+              (push (list 'ajouter-fait cle nil) *historique-faits*)
+              valeur)
+        )
+      )
     )
-    (let* ((category-list (cadr (assoc type *base-faits*)))
-           (type-names '((ingredients . "Ingrédient")
-                         (materiel . "Matériel")
-                         (filtres . "Filtre")))
-           (display-name (cdr (assoc type type-names)))
-           (quantite-ou-etat (if (eq type 'ingredients) "quantité" "état")))
-      (when category-list
-        (push (cons cle valeur) category-list)
-        (format t "~A ~A ajouté avec ~A ~A.~%" display-name cle quantite-ou-etat valeur)
-        (push (list 'ajouter-fait cle nil) *historique-faits*)
-        valeur)))
 )
 
 
@@ -109,12 +106,13 @@
   (let ((fait (obtenir-fait cle)))
     (if fait
       (progn
-        (if (numberp (cdr fait))
-          (modifier-fait cle 0)
-          (modifier-fait cle nil)
-        )
-        t
-      )
+        (dolist (type '(ingredients materiel filtres))
+          (let ((categorie (assoc type *base-faits*)))
+            (when categorie
+              (setf (cadr categorie)
+                    (remove fait (cadr categorie))))))
+        (push (list 'supprimer-fait cle (cdr fait)) *historique-faits*)
+        t)
       nil
     )
   )
@@ -233,10 +231,10 @@
         (etat-historique (assoc index-etat *sauvegarde-historique*)))
     (if (and etat-sauvegarde etat-historique)
         (progn
-          (setf *base-faits* (copy-tree (cadr etat-sauvegarde)))
-          (setf *historique-faits* (copy-tree (cadr etat-historique)))
-          (format t "Base de faits restaurée à l'état ~A.~%" index-etat)
-          (copy-tree (cadr etat-sauvegarde)))
-        nil)
-)
+      (setf *base-faits* (copy-tree (cadr etat-sauvegarde)))
+      (setf *historique-faits* (copy-tree (cadr etat-historique)))
+      (format t "Base de faits restaurée à l'état ~A.~%" index-etat)
+      (copy-tree (cadr etat-sauvegarde)))
+    nil)
+))
 
