@@ -230,11 +230,12 @@
 
   (let ((etat-sauvegarde (assoc index-etat *sauvegarde-faits*))
         (etat-historique (assoc index-etat *sauvegarde-historique*)))
-    (when (and etat-sauvegarde etat-historique)
-      (setf *base-faits* (copy-tree (cadr etat-sauvegarde)))
-      (setf *historique-faits* (copy-tree (cadr etat-historique)))
-      (format t "Base de faits restaurée à l'état ~A.~%" index-etat))
-
-    (copy-tree (cadr etat-sauvegarde)))
+    (if (and etat-sauvegarde etat-historique)
+        (progn
+          (setf *base-faits* (copy-tree (cadr etat-sauvegarde)))
+          (setf *historique-faits* (copy-tree (cadr etat-historique)))
+          (format t "Base de faits restaurée à l'état ~A.~%" index-etat)
+          (copy-tree (cadr etat-sauvegarde)))
+        nil)
 )
 
