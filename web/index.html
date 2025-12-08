@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Système Expert Culinaire - IA01 TP3</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ======================================================================
+         HEADER
+         ====================================================================== -->
+    <header class="header">
+        <div class="container">
+            <h1>Système Expert Culinaire</h1>
+            <p class="subtitle">IA01 - TP3 - Système Expert d'ordre 0+</p>
+        </div>
+    </header>
+
+    <!-- ======================================================================
+         NAVIGATION
+         ====================================================================== -->
+    <nav class="nav-tabs">
+        <div class="container">
+            <button class="tab-btn active" onclick="afficherOnglet('ingredients')">
+                Ingrédients
+            </button>
+            <button class="tab-btn" onclick="afficherOnglet('materiel')">
+                Matériel
+            </button>
+            <button class="tab-btn" onclick="afficherOnglet('filtres')">
+                Filtres
+            </button>
+            <button class="tab-btn" onclick="afficherOnglet('recettes')">
+                Recettes
+            </button>
+            <button class="tab-btn" onclick="afficherOnglet('trace')">
+                Trace
+            </button>
+        </div>
+    </nav>
+
+    <!-- ======================================================================
+         MAIN CONTENT
+         ====================================================================== -->
+    <main class="container">
+        
+        <!-- ONGLET : INGRÉDIENTS -->
+        <section id="tab-ingredients" class="tab-content active">
+            <h2>Ingrédients disponibles</h2>
+            <p class="info">Sélectionnez les ingrédients que vous possédez et indiquez leur quantité.</p>
+            
+            <div class="search-box">
+                <input type="text" id="search-ingredients" placeholder="Rechercher un ingrédient..." 
+                       onkeyup="filtrerIngredients()">
+            </div>
+            
+            <div id="liste-ingredients" class="grid-list">
+                <!-- Généré dynamiquement par app.js -->
+                <p class="loading">Chargement des ingrédients...</p>
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-primary" onclick="validerIngredients()">
+                    ✓ Valider la sélection
+                </button>
+                <button class="btn btn-secondary" onclick="reinitialiserIngredients()">
+                    ↻ Réinitialiser
+                </button>
+            </div>
+        </section>
+
+        <!-- ONGLET : MATÉRIEL -->
+        <section id="tab-materiel" class="tab-content">
+            <h2>Matériel de cuisine</h2>
+            <p class="info">Sélectionnez le matériel dont vous disposez.</p>
+            
+            <div class="search-box">
+                <input type="text" id="search-materiel" placeholder="Rechercher du matériel..." 
+                       onkeyup="filtrerMateriel()">
+            </div>
+            
+            <div id="liste-materiel" class="grid-list">
+                <!-- Généré dynamiquement par app.js -->
+                <p class="loading">Chargement du matériel...</p>
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-primary" onclick="validerMateriel()">
+                    ✓ Valider la sélection
+                </button>
+                <button class="btn btn-secondary" onclick="reinitialiserMateriel()">
+                    ↻ Réinitialiser
+                </button>
+            </div>
+        </section>
+
+        <!-- ONGLET : FILTRES -->
+        <section id="tab-filtres" class="tab-content">
+            <h2>Filtres de recherche</h2>
+            <p class="info">Configurez vos préférences pour affiner les résultats.</p>
+            
+            <div class="filter-group">
+                <h3>Régime alimentaire</h3>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="filtre-vegetarien">
+                    Uniquement des recettes végétariennes
+                </label>
+            </div>
+            
+            <div class="filter-group">
+                <h3>Saisons</h3>
+                <div class="checkbox-grid">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="saison" value="printemps">
+                        🌸 Printemps
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="saison" value="ete">
+                        ☀️ Été
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="saison" value="automne">
+                        🍂 Automne
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="saison" value="hiver">
+                        ❄️ Hiver
+                    </label>
+                </div>
+            </div>
+            
+            <div class="filter-group">
+                <h3>Types de plats</h3>
+                <div class="checkbox-grid">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="type" value="entree">
+                        🥗 Entrées
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="type" value="plat">
+                        🍽️ Plats
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="type" value="dessert">
+                        🍰 Desserts
+                    </label>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-primary" onclick="validerFiltres()">
+                    ✓ Appliquer les filtres
+                </button>
+                <button class="btn btn-secondary" onclick="reinitialiserFiltres()">
+                    ↻ Réinitialiser
+                </button>
+            </div>
+        </section>
+
+        <!-- ONGLET : RECETTES -->
+        <section id="tab-recettes" class="tab-content">
+            <h2>Recettes réalisables</h2>
+            <p class="info">Résultats de la recherche avec chaînage avant.</p>
+            
+            <div class="actions">
+                <button class="btn btn-success btn-large" onclick="lancerRecherche()">
+                    Lancer la recherche
+                </button>
+            </div>
+            
+            <div id="resultats-recettes">
+                <p class="placeholder">Cliquez sur "Lancer la recherche" pour trouver des recettes.</p>
+            </div>
+        </section>
+
+        <!-- ONGLET : TRACE -->
+        <section id="tab-trace" class="tab-content">
+            <h2>Trace du raisonnement</h2>
+            <p class="info">Visualisation du processus d'inférence (chaînage avant).</p>
+            
+            <div id="trace-container">
+                <p class="placeholder">Lancez une recherche pour voir la trace du raisonnement.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ======================================================================
+         FOOTER
+         ====================================================================== -->
+    <footer class="footer">
+        <div class="container">
+            <p>TP3 IA01 - Système Expert Culinaire</p>
+            <p>Nathan GUEVARA & Loïc ZHOU - UTC 2025</p>
+        </div>
+    </footer>
+
+    <!-- ======================================================================
+         NOTIFICATIONS
+         ====================================================================== -->
+    <div id="notifications" class="notifications"></div>
+
+    <!-- ======================================================================
+         SCRIPTS
+         ====================================================================== -->
+    <script src="app.js"></script>
+</body>
+</html>
