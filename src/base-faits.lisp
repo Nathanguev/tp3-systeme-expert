@@ -45,6 +45,7 @@
 (defun ajouter-fait (type cle valeur)
   "Ajoute un fait à la base de faits ou met à jour sa valeur.
    Paramètres :
+     - type : type de fait ('ingredients, 'materiel, ou 'filtres)
      - type : catégorie du fait ('ingredients, 'materiel, 'filtres)
      - cle : symbole identifiant le fait
      - valeur : valeur associée (nombre ou booléen)
