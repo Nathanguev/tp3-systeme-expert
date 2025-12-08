@@ -74,14 +74,9 @@
      - cle : symbole identifiant le fait
    Retour : valeur du fait ou nil si non trouvé"
 
-  (let ((ingredient (assoc cle (cadr (assoc 'ingredients *base-faits*))))
-        (materiel (assoc cle (cadr (assoc 'materiel *base-faits*))))
-        (filtre (assoc cle (cadr (assoc 'filtres *base-faits*)))))
-    (cond
-      (ingredient ingredient)
-      (materiel materiel)
-      (filtre filtre)
-    ))
+  (some (lambda (type)
+          (assoc cle (cadr (assoc type *base-faits*))))
+        '(ingredients materiel filtres))
 )
 
 
