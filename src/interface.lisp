@@ -60,7 +60,11 @@
         
         ;; Afficher base de faits
         ((eql choix 6)
-         (afficher-base-faits))
+         (afficher-base-faits)
+         (format t "~%[DEBUG] Base de faits actuelle :")
+         (print *base-faits*)
+         (format t "~%")
+         (pause))
         
         ;; Afficher trace
         ((eql choix 7)
@@ -130,7 +134,7 @@
                            1)))
             
             ;; Ajouter le fait
-            (ajouter-fait ingredient quantite)
+            (ajouter-fait 'ingredients ingredient quantite)
             (format t "~A ~A : ~D ajouté~%" 
                     (format-ok)
                     (string-capitalize (substitute #\Space #\_ (string ingredient)))
@@ -214,7 +218,7 @@
                 ;; Vérifier si déjà sélectionné
                 (unless (member mat materiel-selectionne)
                   ;; Ajouter le fait
-                  (ajouter-fait mat t)
+                  (ajouter-fait 'materiel mat t)
                   (push mat materiel-selectionne)
                   (format t "~A ~A ajouté~%" 
                           (format-ok)
@@ -265,7 +269,7 @@
   (let ((vegetarien (configurer-filtre-vegetarien)))
     (if vegetarien
         (progn
-          (ajouter-fait 'vegetarien t)
+          (ajouter-fait 'filtres 'vegetarien t)
           (format t "~A Filtre végétarien activé~%" (format-ok)))
         (format t "~A Toutes les recettes (végétariennes et non-végétariennes) seront proposées~%" (format-ok))))
   
@@ -275,7 +279,7 @@
   (let ((saisons (configurer-filtres-saisons)))
     (if saisons
         (dolist (saison saisons)
-          (ajouter-fait saison t)
+          (ajouter-fait 'filtres saison t)
           (format t "~A Saison ~A ajoutée~%" (format-ok) (string-capitalize (string saison))))
         (format t "~A Toutes les saisons acceptées~%" (format-ok))))
   
@@ -285,7 +289,7 @@
   (let ((types (configurer-filtres-types)))
     (if types
         (dolist (type types)
-          (ajouter-fait type t)
+          (ajouter-fait 'filtres type t)
           (format t "~A Type ~A ajouté~%" (format-ok) (string-capitalize (string type))))
         (format t "~A Tous les types de plats acceptés~%" (format-ok))))
   

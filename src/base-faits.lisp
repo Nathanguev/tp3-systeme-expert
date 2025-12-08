@@ -35,7 +35,9 @@
 (defun initialiser-base-faits ()
   "Initialise ou réinitialise la base de faits à un état vide.
    Nettoie également l'historique."
-  (setf *base-faits* nil)
+  (setf *base-faits* '((ingredients ())
+                       (materiel ())
+                       (filtres ())))
   (setf *historique-faits* nil))
 
 ;;; ----------------------------------------------------------------------------
@@ -55,15 +57,9 @@
       (modifier-fait cle valeur)
       (let ((categorie (assoc type *base-faits*)))
         (when categorie
-            (progn
-              (push (cons cle valeur) (cadr categorie))
-              (format t "~A ajouté avec la valeur ~A.~%" cle valeur)
-              (push (list 'ajouter-fait cle nil) *historique-faits*)
-              valeur)
-        )
-      )
-    )
-)
+          (setf (cadr categorie) (cons (cons cle valeur) (cadr categorie)))
+          (push (list 'ajouter-fait cle nil) *historique-faits*)
+          valeur))))
 
 
 
@@ -190,9 +186,13 @@
     (dolist (cat categories)
       (when (or (null filtrer) (eq filtrer (car cat)))
         (format t "~%--- ~A ---~%" (cdr cat))
-        (dolist (fait (cadr (assoc (car cat) *base-faits*)))
-          (format t "~A : ~A~%" (car fait) (cdr fait))))))
-)
+        (let ((faits (cadr (assoc (car cat) *base-faits*))))
+          (if faits
+              (dolist (fait faits)
+                (if (eq (cdr fait) t)
+                    (format t "  ~A~%" (car fait))
+                    (format t "  ~A : ~A~%" (car fait) (cdr fait))))
+              (format t "  VIDE~%")))))))
 
 (defun afficher-historique ()
   "Affiche l'historique des modifications de la base de faits."
