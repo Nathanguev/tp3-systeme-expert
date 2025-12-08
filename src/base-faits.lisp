@@ -249,27 +249,3 @@
     (copy-tree (cadr etat-sauvegarde)))
 )
 
-; Jeu de test
-(ajouter-fait 'ingredients 'tomate 300)
-(ajouter-fait 'ingredients 'oignon 100)
-(ajouter-fait 'ingredients 'huile-olive 50)
-(ajouter-fait 'materiel 'couteau t)
-(ajouter-fait 'filtres 'gluten-free t)
-(ajouter-fait 'filtres 'vegan t)
-(afficher-base-faits)
-(afficher-historique)
-(modifier-fait 'tomate 150)
-(decremente-fait 'oignon 30)
-(incremente-fait 'huile-olive 20)
-(supprimer-fait 'gluten-free)
-(afficher-base-faits)
-(afficher-historique)
-(sauvegarder-etat)
-(ajouter-fait 'ingredients 'fromage 200)
-(afficher-base-faits)
-(afficher-historique)
-(restaurer-etat 1)
-(afficher-base-faits)
-(afficher-historique)
-
-
