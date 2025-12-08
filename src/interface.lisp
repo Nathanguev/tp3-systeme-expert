@@ -61,9 +61,6 @@
         ;; Afficher base de faits
         ((eql choix 6)
          (afficher-base-faits)
-         (format t "~%[DEBUG] Base de faits actuelle :")
-         (print *base-faits*)
-         (format t "~%")
          (pause))
         
         ;; Afficher trace
