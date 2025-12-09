@@ -121,7 +121,7 @@
   ;; - Retourner t si toutes sont vraies
   (dolist (condition conditions)
     (unless (evaluer-condition condition)
-      (return nil)))
+      (return-from evaluer-conditions nil)))
   t
   )
 
@@ -196,8 +196,8 @@
         (actions (regle-actions regle)))
     (when (evaluer-conditions conditions)
       (dolist (action actions)
-        (funcall action))
-      (ajouter-fait conclusion 1)
+        (apply (car action) (cdr action)))
+      (ajouter-fait 'ingredients conclusion 1)
       t)))
 
 ; Inutile pour l'instant
@@ -255,12 +255,13 @@
     )
   )
 
-(defun extraire-metadata (regle cle)
-  "Extrait une métadonnée d'une règle.
-   Paramètres :
-     - regle : structure REGLE
-     - cle : symbole de la métadonnée recherchée
-   Retour : valeur de la métadonnée ou nil"
-  ;; TODO: Implémenter l'extraction
-  ;; - Chercher dans le champ metadata de la règle
-  )
+; Accesseurs de métadonnées implémentés directement via regle-metadata
+; (defun extraire-metadata (regle cle)
+;   "Extrait une métadonnée d'une règle.
+;    Paramètres :
+;      - regle : structure REGLE
+;      - cle : symbole de la métadonnée recherchée
+;    Retour : valeur de la métadonnée ou nil"
+;   ;; TODO: Implémenter l'extraction
+;   ;; - Chercher dans le champ metadata de la règle
+;   )

@@ -124,15 +124,20 @@
      - quantite : quantité à soustraire
    Retour : nouvelle valeur ou nil si impossible"
 
-  (let ((fait (obtenir-fait cle)))
+  (let ((fait (assoc cle (cadr (assoc 'ingredients *base-faits*)))))
     (if (and fait (numberp (cdr fait)) (>= (cdr fait) quantite))
       (progn
+        (print cle)
+        (print quantite)
         (push (list 'decremente-fait cle (cdr fait)) *historique-faits*)
         (setf (cdr fait) (- (cdr fait) quantite))
-        (cdr fait))
-      nil)
+        (cdr fait)
+        (print (obtenir-fait cle))
+        (print (cdr fait))
+      )
+      nil
   )
-)
+))
 
 (defun incremente-fait (cle quantite)
   "Incrémente la valeur numérique d'un fait.
@@ -141,15 +146,16 @@
      - quantite : quantité à ajouter
    Retour : nouvelle valeur ou nil si impossible"
 
-  (let ((fait (obtenir-fait cle)))
+  (let ((fait (assoc cle (cadr (assoc 'ingredients *base-faits*)))))
     (if (and fait (numberp (cdr fait)))
       (progn
         (push (list 'incremente-fait cle (cdr fait)) *historique-faits*)
         (setf (cdr fait) (+ (cdr fait) quantite))
-        (cdr fait))
-      nil)
+        (cdr fait)
+      )
+      nil
   )
-)
+))
 
 ;;; ----------------------------------------------------------------------------
 ;;; COMPARAISONS (pour conditions des règles)
@@ -166,8 +172,8 @@
   (let ((fait (obtenir-fait cle)))
     (if fait
       (cond
-        ((and (numberp (cdr fait)) (numberp valeur)) (funcall operateur (cdr fait) valeur))
-        ((eq operateur '=) (equal (cdr fait) valeur))
+        ((and (numberp fait) (numberp valeur)) (funcall operateur fait valeur))
+        ((eq operateur '=) (equal fait valeur))
       )
     )
   )

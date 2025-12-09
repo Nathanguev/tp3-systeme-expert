@@ -30,12 +30,13 @@
 
   ;; Initialisation de la base de faits
   (initialiser-base-faits)
-
   ;; Chargement des règles depuis les données
   (charger-recettes)
 
   ;; Lancement de l'interface utilisateur
   (interface-principale))
+
+
 
 ;;; ----------------------------------------------------------------------------
 ;;; LANCEMENT AUTOMATIQUE
