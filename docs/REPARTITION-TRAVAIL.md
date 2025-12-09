@@ -56,7 +56,7 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
 - [x] Implémenter `regles-pour-but(but)` → pour chaînage arrière
 - [x] Implémenter `appliquer-regle(regle)` → exécute actions + conclusion
 - [x] Implémenter `regle-respecte-filtres-p(regle)`
-- [ ] Tester l'évaluation de conditions simples
+- [x] Tester l'évaluation de conditions simples
 
 **Dépendances** : `base-faits.lisp` (doit être terminé)  
 **Fichiers touchés** : `src/gestion-regles.lisp`
