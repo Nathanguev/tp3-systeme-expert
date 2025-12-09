@@ -136,7 +136,12 @@
   ;; - Parcourir *base-regles*
   ;; - Évaluer les conditions de chaque règle
   ;; - Retourner celles dont conditions sont vraies
-  )
+  (let ((candidates '()))
+    (dolist (regle *base-regles*)
+      (when (evaluer-conditions (regle-conditions regle))
+        (push regle candidates)))
+    candidates
+  ))
 
 (defun regles-pour-but (but)
   "Retourne les règles permettant de déduire un but donné.
@@ -145,25 +150,32 @@
    Retour : liste de structures REGLE"
   ;; TODO: Implémenter la sélection par but
   ;; - Filtrer *base-regles* sur le champ conclusion
-  )
+  (let ((resultat '()))
+    (dolist (regle *base-regles*)
+      (when (eq (regle-conclusion regle) but)
+        (push regle resultat)))
+    resultat
+  ))
 
-(defun trier-regles-par-priorite (regles)
-  "Trie une liste de règles par priorité décroissante.
-   Paramètres :
-     - regles : liste de structures REGLE
-   Retour : liste triée"
-  ;; TODO: Implémenter le tri
-  ;; - Utiliser sort avec accesseur regle-priorite
-  )
+; Pour l'instant, ces fonctions ne sont pas nécessaires.
 
-(defun trier-regles-par-profondeur (regles)
-  "Trie une liste de règles par profondeur croissante.
-   Paramètres :
-     - regles : liste de structures REGLE
-   Retour : liste triée"
-  ;; TODO: Implémenter le tri
-  ;; - Profondeur 1+ avant profondeur 0 (compositions avant finales)
-  )
+; (defun trier-regles-par-priorite (regles)
+;   "Trie une liste de règles par priorité décroissante.
+;    Paramètres :
+;      - regles : liste de structures REGLE
+;    Retour : liste triée"
+;   ;; TODO: Implémenter le tri
+;   ;; - Utiliser sort avec accesseur regle-priorite
+;   )
+
+; (defun trier-regles-par-profondeur (regles)
+;   "Trie une liste de règles par profondeur croissante.
+;    Paramètres :
+;      - regles : liste de structures REGLE
+;    Retour : liste triée"
+;   ;; TODO: Implémenter le tri
+;   ;; - Profondeur 1+ avant profondeur 0 (compositions avant finales)
+;   )
 
 ;;; ----------------------------------------------------------------------------
 ;;; APPLICATION DES RÈGLES

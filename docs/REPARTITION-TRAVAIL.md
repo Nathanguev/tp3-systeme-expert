@@ -52,8 +52,8 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
 - [x] Implémenter `ajouter-regle(...)` → **DÉJÀ FAIT**
 - [x] Implémenter `evaluer-condition(condition)` → utilise `comparer-fait`
 - [x] Implémenter `evaluer-conditions(conditions)` → conjonction ET
-- [ ] Implémenter `regles-candidates()` → pour chaînage avant
-- [ ] Implémenter `regles-pour-but(but)` → pour chaînage arrière
+- [x] Implémenter `regles-candidates()` → pour chaînage avant
+- [x] Implémenter `regles-pour-but(but)` → pour chaînage arrière
 - [ ] Implémenter `appliquer-regle(regle)` → exécute actions + conclusion
 - [ ] Implémenter `regle-respecte-filtres-p(regle)`
 - [ ] Tester l'évaluation de conditions simples
