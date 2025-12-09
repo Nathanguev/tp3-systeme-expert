@@ -200,15 +200,16 @@
       (ajouter-fait conclusion 1)
       t)))
 
-(defun peut-appliquer-regle-p (regle)
-  "Vérifie si une règle peut être appliquée (conditions satisfaites).
-   Paramètres :
-     - regle : structure REGLE
-   Retour : t si applicable, nil sinon"
-  ;; TODO: Implémenter la vérification
-  ;; - Évaluer les conditions
-  ;; - Vérifier que la conclusion n'est pas déjà dans la base de faits
-  )
+; Inutile pour l'instant
+; (defun peut-appliquer-regle-p (regle)
+;   "Vérifie si une règle peut être appliquée (conditions satisfaites).
+;    Paramètres :
+;      - regle : structure REGLE
+;    Retour : t si applicable, nil sinon"
+;   ;; TODO: Implémenter la vérification
+;   ;; - Évaluer les conditions
+;   ;; - Vérifier que la conclusion n'est pas déjà dans la base de faits
+;   )
 
 ;;; ----------------------------------------------------------------------------
 ;;; AFFICHAGE ET TRAÇABILITÉ
@@ -245,6 +246,13 @@
   ;; - Vérifier recette_vegetarienne si applicable
   ;; - Vérifier les saisons actives
   ;; - Vérifier les types de plats demandés
+  (let ((metadata (regle-metadata regle)))
+    ;; Exemple de vérification végétarienne
+    (dolist (filtre metadata)
+      (unless (obtenir-fait filtre)
+      (return nil)))
+    t
+    )
   )
 
 (defun extraire-metadata (regle cle)

@@ -55,7 +55,7 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
 - [x] Implémenter `regles-candidates()` → pour chaînage avant
 - [x] Implémenter `regles-pour-but(but)` → pour chaînage arrière
 - [x] Implémenter `appliquer-regle(regle)` → exécute actions + conclusion
-- [ ] Implémenter `regle-respecte-filtres-p(regle)`
+- [x] Implémenter `regle-respecte-filtres-p(regle)`
 - [ ] Tester l'évaluation de conditions simples
 
 **Dépendances** : `base-faits.lisp` (doit être terminé)  
