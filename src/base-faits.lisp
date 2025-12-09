@@ -54,7 +54,7 @@
    Note de migration : la signature a changé, il faut désormais fournir le type en premier argument."
 
   (if (obtenir-fait cle)
-      (modifier-fait cle valeur)
+      (incremente-fait cle valeur)
       (let ((categorie (assoc type *base-faits*)))
         (when categorie
           (setf (cadr categorie) (cons (cons cle valeur) (cadr categorie)))
