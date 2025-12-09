@@ -35,9 +35,9 @@
 (defun initialiser-base-faits ()
   "Initialise ou réinitialise la base de faits à un état vide.
    Nettoie également l'historique."
-  (setf *base-faits* '((ingredients ())
-                       (materiel ())
-                       (filtres ())))
+  (setf (cadr (assoc 'ingredients *base-faits*)) nil)
+  (setf (cadr (assoc 'materiel *base-faits*)) nil)
+  (setf (cadr (assoc 'filtres *base-faits*)) nil)
   (setf *historique-faits* nil))
 
 ;;; ----------------------------------------------------------------------------
