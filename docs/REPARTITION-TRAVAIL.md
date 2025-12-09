@@ -50,8 +50,8 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
 **Tâches** :
 
 - [x] Implémenter `ajouter-regle(...)` → **DÉJÀ FAIT**
-- [ ] Implémenter `evaluer-condition(condition)` → utilise `comparer-fait`
-- [ ] Implémenter `evaluer-conditions(conditions)` → conjonction ET
+- [x] Implémenter `evaluer-condition(condition)` → utilise `comparer-fait`
+- [x] Implémenter `evaluer-conditions(conditions)` → conjonction ET
 - [ ] Implémenter `regles-candidates()` → pour chaînage avant
 - [ ] Implémenter `regles-pour-but(but)` → pour chaînage arrière
 - [ ] Implémenter `appliquer-regle(regle)` → exécute actions + conclusion

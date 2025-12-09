@@ -60,7 +60,7 @@
     (when regle-existante
       (warn "La règle ~A existe déjà et sera remplacée." nom)
       (supprimer-regle nom)))
-  
+
   ;; Créer la nouvelle règle
   (let ((nouvelle-regle (make-regle
                           :nom nom
@@ -104,6 +104,10 @@
   ;; - Extraire cle, operateur, valeur
   ;; - Utiliser comparer-fait de base-faits.lisp
   ;; - Gérer les cas spéciaux (OU, ET, NOT)
+  (let ((cle (first condition))
+        (operateur (second condition))
+        (valeur (third condition)))
+    (comparer-fait cle operateur valeur))
   )
 
 (defun evaluer-conditions (conditions)
@@ -115,6 +119,10 @@
   ;; - Parcourir la liste des conditions
   ;; - Retourner nil dès qu'une condition est fausse
   ;; - Retourner t si toutes sont vraies
+  (dolist (condition conditions)
+    (unless (evaluer-condition condition)
+      (return nil)))
+  t
   )
 
 ;;; ----------------------------------------------------------------------------
