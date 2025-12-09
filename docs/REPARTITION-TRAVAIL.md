@@ -30,14 +30,14 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
 
 **Tâches** :
 
-- [ ] Implémenter `initialiser-base-faits()`
-- [ ] Implémenter `ajouter-fait(cle, valeur)`
-- [ ] Implémenter `obtenir-fait(cle)`
-- [ ] Implémenter `modifier-fait(cle, nouvelle-valeur)`
-- [ ] Implémenter `comparer-fait(cle, operateur, valeur)` → **IMPORTANT pour les règles**
-- [ ] Implémenter `decremente-fait(cle, quantite)` → **IMPORTANT pour ordre 0+**
-- [ ] Implémenter `afficher-base-faits()`
-- [ ] Tester avec des faits simples
+- [x] Implémenter `initialiser-base-faits()`
+- [x] Implémenter `ajouter-fait(cle, valeur)`
+- [x] Implémenter `obtenir-fait(cle)`
+- [x] Implémenter `modifier-fait(cle, nouvelle-valeur)`
+- [x] Implémenter `comparer-fait(cle, operateur, valeur)` → **IMPORTANT pour les règles**
+- [x] Implémenter `decremente-fait(cle, quantite)` → **IMPORTANT pour ordre 0+**
+- [x] Implémenter `afficher-base-faits()`
+- [x] Tester avec des faits simples
 
 **Dépendances** : Aucune  
 **Fichiers touchés** : `src/base-faits.lisp`
