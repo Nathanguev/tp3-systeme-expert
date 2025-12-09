@@ -372,13 +372,121 @@
 (defun verifier-recette-specifique ()
   "Vérifie si une recette spécifique peut être réalisée (chaînage arrière).
    Demande à l'utilisateur quelle recette vérifier."
-  ;; TODO: Implémenter la vérification
-  ;; - Afficher liste des recettes disponibles
-  ;; - Demander choix utilisateur
-  ;; - Lancer chainage-arriere avec le but choisi
-  ;; - Afficher le résultat (possible ou non)
-  ;; - Expliquer pourquoi (manque d'ingrédients/matériel)
-  )
+  
+  (format t "~%=== VÉRIFICATION D'UNE RECETTE SPÉCIFIQUE ===~%~%")
+  
+  ;; Récupérer la liste des recettes disponibles
+  (let ((recettes (lister-toutes-recettes)))
+    
+    (if (null recettes)
+        (progn
+          (format t "Aucune recette disponible. Chargez d'abord les recettes.~%")
+          (pause)
+          (return-from verifier-recette-specifique))
+        (format t "~D recette(s) disponible(s) dans le système.~%~%" (length recettes)))
+    
+    ;; Afficher la liste des recettes
+    (format t "Liste des recettes :~%")
+    (let ((compteur 1))
+      (dolist (rec recettes)
+        (let ((regle (obtenir-regle rec)))
+          (if regle
+              (format t "  ~2D. ~A~%" compteur (or (regle-description regle) 
+                                                     (string-capitalize (substitute #\Space #\_ (string rec)))))
+              (format t "  ~2D. ~A~%" compteur (string-capitalize (substitute #\Space #\_ (string rec))))))
+        (incf compteur)))
+    
+    (format t "~%")
+    (let ((choix (lire-entier "Numéro de la recette à vérifier (0 pour annuler) : " 0 (length recettes))))
+      
+      ;; Annuler
+      (when (= choix 0)
+        (format t "~%Vérification annulée.~%")
+        (pause)
+        (return-from verifier-recette-specifique))
+      
+      ;; Choix valide
+      (let ((recette-choisie (nth (1- choix) recettes)))
+        
+        (format t "~%Vérification de : ~A~%" 
+                (string-capitalize (substitute #\Space #\_ (string recette-choisie))))
+        (format t "~%Analyse en cours...~%~%")
+        
+        ;; Lancer le chaînage arrière
+        (let ((resultat (chainage-arriere recette-choisie)))
+          
+          (if resultat
+              (progn
+                (format t "~A ~A peut être réalisée !~%~%" 
+                        (format-ok)
+                        (string-capitalize (substitute #\Space #\_ (string recette-choisie))))
+                
+                ;; Afficher les détails de la recette
+                (let ((regle (obtenir-regle recette-choisie)))
+                  (when regle
+                    (format t "Ingrédients requis :~%")
+                    (dolist (condition (regle-conditions regle))
+                      (let ((cle (first condition))
+                            (op (second condition))
+                            (val (third condition)))
+                        (when (member op '(>= <=))
+                          (format t "  - ~A : ~A~%" 
+                                  (string-capitalize (substitute #\Space #\_ (string cle)))
+                                  val))))
+                    
+                    (format t "~%Matériel requis :~%")
+                    (dolist (condition (regle-conditions regle))
+                      (let ((cle (first condition))
+                            (val (third condition)))
+                        (when (eq val t)
+                          (format t "  - ~A~%" 
+                                  (string-capitalize (substitute #\Space #\_ (string cle)))))))))))
+              
+              (progn
+                (format t "~A ~A ne peut PAS être réalisée.~%~%" 
+                        (format-erreur)
+                        (string-capitalize (substitute #\Space #\_ (string recette-choisie))))
+                
+                ;; Expliquer pourquoi
+                (format t "Raisons possibles :~%")
+                (let ((regle (obtenir-regle recette-choisie)))
+                  (when regle
+                    (format t "~%Ingrédients/matériel manquants ou insuffisants :~%")
+                    (dolist (condition (regle-conditions regle))
+                      (let* ((cle (first condition))
+                             (op (second condition))
+                             (val (third condition))
+                             (fait-valeur (obtenir-fait cle)))
+                        
+                        ;; Vérifier les ingrédients
+                        (when (member op '(>= <=))
+                          (cond
+                            ((null fait-valeur)
+                             (format t "  ~A ~A manquant (requis: ~A)~%" 
+                                     (format-erreur)
+                                     (string-capitalize (substitute #\Space #\_ (string cle)))
+                                     val))
+                            ((and (numberp fait-valeur) (< fait-valeur val))
+                             (format t "  ~A ~A insuffisant (disponible: ~A, requis: ~A)~%" 
+                                     (format-erreur)
+                                     (string-capitalize (substitute #\Space #\_ (string cle)))
+                                     fait-valeur
+                                     val))))
+                        
+                        ;; Vérifier le matériel
+                        (when (eq val t)
+                          (unless fait-valeur
+                            (format t "  ~A ~A manquant~%" 
+                                    (format-erreur)
+                                    (string-capitalize (substitute #\Space #\_ (string cle))))))))))))
+        
+        (format t "~%")
+        
+        ;; Proposer d'afficher la trace
+        (when (lire-oui-non "Souhaitez-vous afficher la trace du raisonnement ? (o/n) : ")
+          (afficher-trace-complete))
+        
+        (pause)))))
 
 ;;; ----------------------------------------------------------------------------
 ;;; AFFICHAGE DES RÉSULTATS

@@ -164,10 +164,14 @@
 (defun lister-toutes-recettes ()
   "Retourne la liste de toutes les recettes disponibles.
    Retour : liste de symboles"
-  ;; TODO: Implémenter le listage
-  ;; - Parser *base-regles*
-  ;; - Extraire les conclusions de profondeur 0
-  )
+  (let ((recettes nil))
+    ;; Parcourir toutes les règles
+    (dolist (regle *base-regles*)
+      ;; Les recettes finales ont une profondeur de 0
+      (when (= (regle-profondeur regle) 0)
+        (push (regle-nom regle) recettes)))
+    ;; Retourner la liste triée
+    (sort recettes #'string< :key #'string)))
 
 (defun lister-tous-ingredients ()
   "Retourne la liste de tous les ingrédients référencés.
