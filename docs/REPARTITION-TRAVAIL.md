@@ -54,7 +54,7 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
 - [x] Implémenter `evaluer-conditions(conditions)` → conjonction ET
 - [x] Implémenter `regles-candidates()` → pour chaînage avant
 - [x] Implémenter `regles-pour-but(but)` → pour chaînage arrière
-- [ ] Implémenter `appliquer-regle(regle)` → exécute actions + conclusion
+- [x] Implémenter `appliquer-regle(regle)` → exécute actions + conclusion
 - [ ] Implémenter `regle-respecte-filtres-p(regle)`
 - [ ] Tester l'évaluation de conditions simples
 

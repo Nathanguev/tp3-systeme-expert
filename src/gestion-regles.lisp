@@ -191,7 +191,14 @@
   ;; - Exécuter les actions (décrémenter ingrédients)
   ;; - Ajouter la conclusion à la base de faits
   ;; - Enregistrer la règle déclenchée pour traçabilité
-  )
+  (let ((conditions (regle-conditions regle))
+        (conclusion (regle-conclusion regle))
+        (actions (regle-actions regle)))
+    (when (evaluer-conditions conditions)
+      (dolist (action actions)
+        (funcall action))
+      (ajouter-fait conclusion 1)
+      t)))
 
 (defun peut-appliquer-regle-p (regle)
   "Vérifie si une règle peut être appliquée (conditions satisfaites).
