@@ -10,8 +10,8 @@
 ;;; ----------------------------------------------------------------------------
 
 (defvar *base-faits* '((ingredients ())
-                      (materiel ())
-                      (filtres ()))
+                       (materiel ())
+                       (filtres ()))
   "Base de faits globale contenant tous les faits courants du système.
    Structure : liste d'association de catégories, chaque catégorie contenant une liste d'association (clé . valeur)
    - Pour ingrédients : (nom-ingredient . quantite-disponible)

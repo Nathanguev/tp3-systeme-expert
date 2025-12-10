@@ -15,16 +15,17 @@
   (loop
     (format t "~%")
     (format t "=== MENU PRINCIPAL ===~%")
-    (format t "1. Saisir les ingrédients disponibles~%")
-    (format t "2. Saisir le matériel disponible~%")
-    (format t "3. Configurer les filtres (végétarien, saisons, type)~%")
-    (format t "4. Lancer la recherche de recettes (chaînage avant)~%")
-    (format t "5. Vérifier une recette spécifique (chaînage arrière)~%")
-    (format t "6. Afficher la base de faits actuelle~%")
-    (format t "7. Afficher la trace du raisonnement~%")
-    (format t "8. Afficher les statistiques~%")
-    (format t "9. Réinitialiser le système~%")
-    (format t "0. Quitter~%")
+    (format t "~%Options :~%")
+    (format t "   1. Saisir les ingrédients disponibles~%")
+    (format t "   2. Saisir le matériel disponible~%")
+    (format t "   3. Configurer les filtres (végétarien, saisons, type)~%")
+    (format t "   4. Lancer la recherche de recettes (chaînage avant)~%")
+    (format t "   5. Vérifier une recette spécifique (chaînage arrière)~%")
+    (format t "   6. Afficher la base de faits actuelle~%")
+    (format t "   7. Afficher la trace du raisonnement~%")
+    (format t "   8. Afficher les statistiques~%")
+    (format t "   9. Réinitialiser le système~%")
+    (format t "   0. Quitter~%")
     (format t "~%Votre choix : ")
     (finish-output)
     
@@ -73,10 +74,9 @@
         
         ;; Réinitialiser
         ((eql choix 9)
-         (format t "~%Réinitialisation du système...~%")
          (initialiser-base-faits)
          (reinitialiser-moteur)
-         (format t "Système réinitialisé.~%"))
+         (format t "~%Système réinitialisé.~%"))
         
         ;; Choix invalide
         (t
@@ -342,117 +342,44 @@
   
   (format t "~%=== VÉRIFICATION D'UNE RECETTE SPÉCIFIQUE ===~%~%")
   
-  ;; Récupérer la liste des recettes disponibles
   (let ((recettes (lister-toutes-recettes)))
-    
-    (if (null recettes)
-        (progn
-          (format t "Aucune recette disponible. Chargez d'abord les recettes.~%")
-          (pause)
-          (return-from verifier-recette-specifique))
-        (format t "~D recette(s) disponible(s) dans le système.~%~%" (length recettes)))
+    ;; Vérifier si des recettes sont disponibles
+    (when (null recettes)
+      (format t "Aucune recette disponible. Chargez d'abord les recettes.~%")
+      (pause)
+      (return-from verifier-recette-specifique))
     
     ;; Afficher la liste des recettes
+    (format t "~D recette(s) disponible(s) dans le système.~%~%" (length recettes))
     (format t "Liste des recettes :~%")
-    (let ((compteur 1))
-      (dolist (rec recettes)
-        (let ((regle (obtenir-regle rec)))
-          (if regle
-              (format t "  ~2D. ~A~%" compteur (or (regle-description regle) 
-                                                     (string-capitalize (substitute #\Space #\_ (string rec)))))
-              (format t "  ~2D. ~A~%" compteur (string-capitalize (substitute #\Space #\_ (string rec))))))
-        (incf compteur)))
+    (loop for rec in recettes
+          for compteur from 1
+          do (format t "  ~2D. ~A~%" compteur 
+                     (string-capitalize (substitute #\Space #\_ (string rec)))))
     
+    ;; Demander le choix
     (format t "~%")
     (let ((choix (lire-entier "Numéro de la recette à vérifier (0 pour annuler) : " 0 (length recettes))))
-      
-      ;; Annuler
-      (when (= choix 0)
+      (when (zerop choix)
         (format t "~%Vérification annulée.~%")
         (pause)
         (return-from verifier-recette-specifique))
       
-      ;; Choix valide
-      (let ((recette-choisie (nth (1- choix) recettes)))
-        
-        (format t "~%Vérification de : ~A~%" 
-                (string-capitalize (substitute #\Space #\_ (string recette-choisie))))
-        (format t "~%Analyse en cours...~%~%")
-        
-        ;; Lancer le chaînage arrière
-        (let ((resultat (chainage-arriere recette-choisie)))
-          
-          (if resultat
-              (progn
-                (format t "~A ~A peut être réalisée !~%~%" 
-                        (format-ok)
-                        (string-capitalize (substitute #\Space #\_ (string recette-choisie))))
-                
-                ;; Afficher les détails de la recette
-                (let ((regle (obtenir-regle recette-choisie)))
-                  (when regle
-                    (format t "Ingrédients requis :~%")
-                    (dolist (condition (regle-conditions regle))
-                      (let ((cle (first condition))
-                            (op (second condition))
-                            (val (third condition)))
-                        (when (member op '(>= <=))
-                          (format t "  - ~A : ~A~%" 
-                                  (string-capitalize (substitute #\Space #\_ (string cle)))
-                                  val))))
-                    
-                    (format t "~%Matériel requis :~%")
-                    (dolist (condition (regle-conditions regle))
-                      (let ((cle (first condition))
-                            (val (third condition)))
-                        (when (eq val t)
-                          (format t "  - ~A~%" 
-                                  (string-capitalize (substitute #\Space #\_ (string cle)))))))))))
-              
-              (progn
-                (format t "~A ~A ne peut PAS être réalisée.~%~%" 
-                        (format-erreur)
-                        (string-capitalize (substitute #\Space #\_ (string recette-choisie))))
-                
-                ;; Expliquer pourquoi
-                (format t "Raisons possibles :~%")
-                (let ((regle (obtenir-regle recette-choisie)))
-                  (when regle
-                    (format t "~%Ingrédients/matériel manquants ou insuffisants :~%")
-                    (dolist (condition (regle-conditions regle))
-                      (let* ((cle (first condition))
-                             (op (second condition))
-                             (val (third condition))
-                             (fait-valeur (obtenir-fait cle)))
-                        
-                        ;; Vérifier les ingrédients
-                        (when (member op '(>= <=))
-                          (cond
-                            ((null fait-valeur)
-                             (format t "  ~A ~A manquant (requis: ~A)~%" 
-                                     (format-erreur)
-                                     (string-capitalize (substitute #\Space #\_ (string cle)))
-                                     val))
-                            ((and (numberp fait-valeur) (< fait-valeur val))
-                             (format t "  ~A ~A insuffisant (disponible: ~A, requis: ~A)~%" 
-                                     (format-erreur)
-                                     (string-capitalize (substitute #\Space #\_ (string cle)))
-                                     fait-valeur
-                                     val))))
-                        
-                        ;; Vérifier le matériel
-                        (when (eq val t)
-                          (unless fait-valeur
-                            (format t "  ~A ~A manquant~%" 
-                                    (format-erreur)
-                                    (string-capitalize (substitute #\Space #\_ (string cle))))))))))))
-        
+      ;; Lancer le chaînage arrière
+      (let* ((recette-choisie (nth (1- choix) recettes))
+             (resultat (chainage-arriere recette-choisie)))
+        (if resultat
+            (format t "~A ~A PEUT être réalisée !~%" 
+                    (format-ok)
+                    (string-capitalize (substitute #\Space #\_ (string recette-choisie))))
+            (format t "~A ~A NE PEUT PAS être réalisée.~%" 
+                    (format-erreur)
+                    (string-capitalize (substitute #\Space #\_ (string recette-choisie)))))
         (format t "~%")
         
         ;; Proposer d'afficher la trace
         (when (lire-oui-non "Souhaitez-vous afficher la trace du raisonnement ? (o/n) : ")
           (afficher-trace-complete))
-        
         (pause)))))
 
 ;;; ----------------------------------------------------------------------------
@@ -665,7 +592,7 @@
              (string= reponse "no"))
          (return nil))
         (t
-         (format t "~A Veuillez répondre par 'o' (oui) ou 'n' (non).~%" (format-erreur)))))))
+         (format t "~A Veuillez répondre par 'o' (oui) ou 'n' (non).~%~%" (format-erreur)))))))
 
 (defun lire-choix-multiple (message options)
   "Lit un choix multiple depuis l'entrée utilisateur.
