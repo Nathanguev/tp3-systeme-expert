@@ -54,15 +54,14 @@
    Note de migration : la signature a changé, il faut désormais fournir le type en premier argument."
 
   (if (obtenir-fait cle)
-      (if 'ingredients)
+      (if (eq type 'ingredients)
           (incremente-fait cle valeur)
           (modifier-fait cle valeur))
-      (incremente-fait cle valeur)
       (let ((categorie (assoc type *base-faits*)))
         (when categorie
           (setf (cadr categorie) (cons (cons cle valeur) (cadr categorie)))
           (push (list 'ajouter-fait cle nil) *historique-faits*)
-          valeur)))
+          valeur))))
 
 
 

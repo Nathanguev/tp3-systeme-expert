@@ -40,27 +40,27 @@
   ;;   * Enregistrer la règle dans *regles-declenchees*
   ;;   * Continuer tant qu'il y a des règles applicables
   ;; - Retourner les nouveaux faits déduits
-  (let ((faits-deduits '())
-        (candidates (regles-candidates)))
+
+  (let ((candidates (regles-candidates)))
+        (dolist (recette-faisable candidates)
+          (if (not (member (regle-conclusion recette-faisable) *solutions-trouvees*))
+          (push (regle-conclusion recette-faisable) *solutions-trouvees*)))
         (if (null candidates)
-            (when *regles-declenchees*
-              (print *regles-declenchees*)
-              (push (copy-list (reverse *regles-declenchees*)) *solutions-trouvees*)))
+            (return-from chainage-avant))
             (progn
-              (sort candidates(lambda (r1 r2)
-                      (< (regle-profondeur r1) (regle-profondeur r2))))
+              (setf candidates (sort candidates(lambda (r1 r2)
+                      (< (regle-profondeur r1) (regle-profondeur r2)))))
               (dolist (regle candidates)
                 (when (appliquer-regle regle)
                   (push (regle-conclusion regle) *regles-declenchees*)
-                  (push (regle-conclusion regle) faits-deduits)
                   (chainage-avant)
                   (pop *regles-declenchees*)
                   (desappliquer-regle regle)
+                  )
                 )
               )
             )
         )
-  )
 
 
 (defun chainage-avant-profondeur ()

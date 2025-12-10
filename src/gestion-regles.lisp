@@ -195,12 +195,12 @@
   (let ((conditions (regle-conditions regle))
         (conclusion (regle-conclusion regle))
         (actions (regle-actions regle)))
-    (when (member conclusion (cdr (assoc 'ingredients *base-faits*)))
+    (when (> (cdr (assoc conclusion (cadr (assoc 'ingredients *base-faits*)))) 0)
+
       (dolist (action actions)
         (if (eq (car action) 'decremente-fait)
-            (setf (car action) 'incremente-fait)
-            (setf (car action) 'decremente-fait))
-        (apply (car action) (cdr action)))
+            (apply 'incremente-fait (cdr action))
+            (apply 'decremente-fait (cdr action))))
       (ajouter-fait 'ingredients conclusion -1)
       t)))
 
