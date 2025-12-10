@@ -117,7 +117,7 @@
   (ajouter-fait 'materiel 'rouleau t)
   (ajouter-fait 'materiel 'moule_tarte t)
   (ajouter-fait 'materiel 'four t)
-  (ajouter-fait 'materiel 'casserole t)
+  (ajouter-fait 'materiel 'poele t)
 
   (format t "Faits initiaux :~%")
   (afficher-base-faits)
