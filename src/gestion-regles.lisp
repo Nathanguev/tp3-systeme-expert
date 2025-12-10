@@ -60,7 +60,6 @@
     (when regle-existante
       (warn "La règle ~A existe déjà et sera remplacée." nom)
       (supprimer-regle nom)))
-
   ;; Créer la nouvelle règle
   (let ((nouvelle-regle (make-regle
                           :nom nom
@@ -107,8 +106,7 @@
   (let ((cle (first condition))
         (operateur (second condition))
         (valeur (third condition)))
-    (comparer-fait cle operateur valeur))
-  )
+    (comparer-fait cle operateur valeur)))
 
 (defun evaluer-conditions (conditions)
   "Évalue une liste de conditions (conjonction ET).
@@ -122,8 +120,7 @@
   (dolist (condition conditions)
     (unless (evaluer-condition condition)
       (return-from evaluer-conditions nil)))
-  t
-  )
+  t)
 
 ;;; ----------------------------------------------------------------------------
 ;;; SÉLECTION DES RÈGLES
@@ -140,8 +137,7 @@
     (dolist (regle *base-regles*)
       (when (evaluer-conditions (regle-conditions regle))
         (push regle candidates)))
-    candidates
-  ))
+    candidates))
 
 (defun regles-pour-but (but)
   "Retourne les règles permettant de déduire un but donné.
@@ -154,8 +150,7 @@
     (dolist (regle *base-regles*)
       (when (eq (regle-conclusion regle) but)
         (push regle resultat)))
-    resultat
-  ))
+    resultat))
 
 ; Pour l'instant, ces fonctions ne sont pas nécessaires.
 
@@ -250,7 +245,7 @@
     ;; Exemple de vérification végétarienne
     (dolist (filtre metadata)
       (cond
-  ;; Cas 1 : Filtres spéciaux -> on renvoie T
+  ;; Cas 1 : Filtres spéciaux -> on renvoie t
   ((or (eq filtre ':saisons) (eq filtre ':type) (eq filtre t))
    t)
 
@@ -263,9 +258,9 @@
    (dolist (sous-filtre filtre)
      (unless (obtenir-fait sous-filtre)
        (return-from regle-respecte-filtres-p nil)))
-   t) ;; On retourne T à la fin si tout va bien
+   t) ;; On retourne t à la fin si tout va bien
 
-  ;; Cas 3 (par défaut, T) : Filtre atomique simple
+  ;; Cas 3 (par défaut, t) : Filtre atomique simple
   (t
    (unless (obtenir-fait filtre)
      (return-from regle-respecte-filtres-p nil))
