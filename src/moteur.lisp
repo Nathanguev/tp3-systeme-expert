@@ -68,11 +68,7 @@
    Paramètres :
      - but : symbole du fait à prouver
    Retour : t si le but est prouvé, nil sinon"
-  
-  ;; Initialiser la traçabilité
   (setf *regles-declenchees* nil)
-  
-  ;; Lancer la preuve récursive à partir de la profondeur 0
   (prouver-but-recursif but 0))
 
 (defun prouver-but-recursif (but profondeur)
@@ -82,80 +78,26 @@
      - profondeur : profondeur courante de récursion
    Retour : t si prouvé, nil sinon"
   
-  ;; 1. Vérifier la profondeur maximale (éviter boucles infinies)
+  ;; Vérifier la profondeur maximale (éviter boucles infinies)
   (when (>= profondeur *profondeur-max*)
     (return-from prouver-but-recursif nil))
   
-  ;; 2. Si le but est déjà dans la base de faits, c'est prouvé
+  ;; Si le but est déjà dans la base de faits, c'est prouvé
   (when (obtenir-fait but)
     (return-from prouver-but-recursif t))
   
-  ;; 3. Chercher les règles qui concluent ce but
-  (let ((regles-pertinentes (regles-pour-but but)))
-    
-    ;; Si aucune règle ne conclut pas ce but, échec
-    (when (null regles-pertinentes)
-      (return-from prouver-but-recursif nil))
-    
-    ;; 4. Trier les règles par priorité (les plus prioritaires d'abord)
-    (setf regles-pertinentes (trier-regles-par-priorite regles-pertinentes))
-    
-    ;; 5. Essayer chaque règle jusqu'à en trouver une qui marche
-    (dolist (regle regles-pertinentes)
-      
-      ;; Vérifier si toutes les conditions peuvent être prouvées
-      (let ((toutes-conditions-prouvees t))
-        
-        ;; Parcourir chaque condition de la règle
-        (dolist (condition (regle-conditions regle))
-          (let* ((cle (first condition))
-                 (operateur (second condition))
-                 (valeur (third condition)))
-            
-            ;; Pour les conditions numériques (>=, <=, etc.)
-            (cond
-              ;; Cas d'une comparaison numérique ou d'égalité
-              ((member operateur '(>= <= = > <))
-               ;; Vérifier si le fait existe et satisfait la condition
-               (let ((fait-valeur (obtenir-fait cle)))
-                 (unless (and fait-valeur
-                             (if (eq operateur '=)
-                                 (equal fait-valeur valeur)
-                                 (and (numberp fait-valeur) 
-                                      (numberp valeur)
-                                      (funcall operateur fait-valeur valeur))))
-                   ;; Si le fait n'existe pas ou ne satisfait pas, essayer de le prouver
-                   (unless (prouver-but-recursif cle (1+ profondeur))
-                     (setf toutes-conditions-prouvees nil)
-                     (return)))))
-              
-              ;; Cas d'un fait booléen simple (ex: (four t))
-              ((eq valeur t)
-               ;; Essayer de prouver le fait
-               (unless (or (obtenir-fait cle)
-                          (prouver-but-recursif cle (1+ profondeur)))
-                 (setf toutes-conditions-prouvees nil)
-                 (return)))
-              
-              ;; Autres cas
-              (t
-               (unless (prouver-but-recursif cle (1+ profondeur))
-                 (setf toutes-conditions-prouvees nil)
-                 (return))))))
-        
-        ;; Si toutes les conditions sont prouvées, appliquer la règle
-        (when toutes-conditions-prouvees
-          ;; Appliquer la règle (ajoute la conclusion à la base de faits)
-          (appliquer-regle regle)
-          
-          ;; Enregistrer la règle dans la trace
-          (push (cons (regle-nom regle) but) *regles-declenchees*)
-          
-          ;; Le but est prouvé
-          (return-from prouver-but-recursif t))))
-    
-    ;; Aucune règle n'a permis de prouver le but
-    nil))
+  ;; Chercher et essayer chaque règle qui conclut ce but
+  (dolist (regle (regles-pour-but but))
+    ;; Prouver récursivement toutes les conditions
+    (when (loop for condition in (regle-conditions regle)
+                for cle = (first condition)
+                always (or (obtenir-fait cle)
+                          (prouver-but-recursif cle (1+ profondeur))))
+      ;; Toutes les conditions sont prouvées, appliquer la règle
+      (appliquer-regle regle)
+      (push (cons (regle-nom regle) but) *regles-declenchees*)
+      (return-from prouver-but-recursif t)))
+  nil)
 
 ;;; ----------------------------------------------------------------------------
 ;;; MOTEUR MIXTE
