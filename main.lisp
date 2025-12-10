@@ -32,7 +32,6 @@
   (initialiser-base-faits)
   ;; Chargement des règles depuis les données
   (charger-recettes)
-
   ;; Lancement de l'interface utilisateur
   (interface-principale))
 

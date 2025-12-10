@@ -127,13 +127,9 @@
   (let ((fait (assoc cle (cadr (assoc 'ingredients *base-faits*)))))
     (if (and fait (numberp (cdr fait)) (>= (cdr fait) quantite))
       (progn
-        (print cle)
-        (print quantite)
         (push (list 'decremente-fait cle (cdr fait)) *historique-faits*)
         (setf (cdr fait) (- (cdr fait) quantite))
         (cdr fait)
-        (print (obtenir-fait cle))
-        (print (cdr fait))
       )
       nil
   )

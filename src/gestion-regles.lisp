@@ -249,11 +249,27 @@
   (let ((metadata (regle-metadata regle)))
     ;; Exemple de vérification végétarienne
     (dolist (filtre metadata)
-      (unless (obtenir-fait filtre)
-      (return nil)))
-    t
-    )
-  )
+      (cond
+  ;; Cas 1 : Filtres spéciaux -> on renvoie T
+  ((or (eq filtre ':saisons) (eq filtre ':type) (eq filtre t))
+   t)
+
+  ((eq filtre ':vegetarien)
+   (unless (obtenir-fait 'vegetarien)
+     (return-from regle-respecte-filtres-p nil))
+   t)
+
+  ((listp filtre)
+   (dolist (sous-filtre filtre)
+     (unless (obtenir-fait sous-filtre)
+       (return-from regle-respecte-filtres-p nil)))
+   t) ;; On retourne T à la fin si tout va bien
+
+  ;; Cas 3 (par défaut, T) : Filtre atomique simple
+  (t
+   (unless (obtenir-fait filtre)
+     (return-from regle-respecte-filtres-p nil))
+   )))t))
 
 ; Accesseurs de métadonnées implémentés directement via regle-metadata
 ; (defun extraire-metadata (regle cle)
