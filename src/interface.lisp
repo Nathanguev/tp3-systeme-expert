@@ -80,7 +80,8 @@
         
         ;; Choix invalide
         (t
-         (format t "~%Choix invalide. Veuillez entrer un nombre entre 0 et 9.~%"))))))
+         (format t "~%Choix invalide. Veuillez entrer un nombre entre 0 et 9.~%")
+         (pause))))))
 
 ;;; ----------------------------------------------------------------------------
 ;;; SAISIE DES INGRÉDIENTS
@@ -92,74 +93,62 @@
   
   (format t "~%=== SAISIE DES INGRÉDIENTS ===~%~%")
   
-  ;; Récupérer la liste des ingrédients connus
-  (let ((ingredients (lister-tous-ingredients))
-        (nb-saisis 0))
-    
-    (if (null ingredients)
-        (progn
-          (format t "Aucun ingrédient disponible. Chargez d'abord les recettes.~%")
-          (return-from saisir-ingredients))
-        (format t "~D ingrédients disponibles dans le système.~%~%" (length ingredients)))
-    
-    ;; Afficher la liste des ingrédients
+  (let ((ingredients (proposer-ingredients-connus)))
+    ;; Vérifier si des ingrédients sont disponibles
+    (when (null ingredients)
+      (format t "Aucun ingrédient disponible. Chargez d'abord les recettes.~%")
+      (pause)
+      (return-from saisir-ingredients))
+    ;; Afficher le nombre et la liste des ingrédients
+    (format t "~D ingrédients disponibles dans le système.~%~%" (length ingredients))
     (format t "Liste des ingrédients :~%")
-    (let ((compteur 1))
-      (dolist (ing ingredients)
-        (format t "  ~2D. ~A~%" compteur (string-capitalize (substitute #\Space #\_ (string ing))))
-        (incf compteur)))
-    
+    (loop for ing in ingredients
+          for compteur from 1
+          do (format t "  ~2D. ~A~%" compteur (string-capitalize (substitute #\Space #\_ (string ing)))))
+
     (format t "~%Saisissez les ingrédients disponibles.~%")
     (format t "Pour chaque ingrédient, entrez le numéro et la quantité (0 pour terminer).~%~%")
-    
+
     ;; Boucle de saisie
-    (loop
-      (let ((choix (lire-entier "Numéro de l'ingrédient (0 pour terminer) : " 0 (length ingredients))))
-        
-        ;; Terminer la saisie
-        (when (= choix 0)
-          (format t "~%~D ingrédient(s) saisi(s).~%" nb-saisis)
-          (return))
-        
-        ;; Choix valide
-        (let ((ingredient (nth (1- choix) ingredients)))
-          
-          ;; Demander la quantité
-          (let ((quantite (lire-entier 
-                           (format nil "Quantité de ~A : " 
-                                   (string-capitalize (substitute #\Space #\_ (string ingredient))))
-                           1)))
-            
-            ;; Ajouter le fait
-            (ajouter-fait 'ingredients ingredient quantite)
-            (format t "~A ~A : ~D ajouté~%" 
-                    (format-ok)
-                    (string-capitalize (substitute #\Space #\_ (string ingredient)))
-                    quantite)
-            (incf nb-saisis)
-            (format t "~%")))))
-    
+    (loop with nb-saisis = 0
+          for choix = (lire-entier "Numéro de l'ingrédient (0 pour terminer) : " 0 (length ingredients))
+          until (zerop choix)
+          do (let* ((ingredient (nth (1- choix) ingredients))
+                    (quantite (saisir-quantite-ingredient ingredient)))
+               (ajouter-fait 'ingredients ingredient quantite)
+               (format t "~A ~A : ~D ajouté~%~%" 
+                       (format-ok)
+                       (string-capitalize (substitute #\Space #\_ (string ingredient)))
+                       quantite)
+               (incf nb-saisis))
+          finally (format t "~%~D ingrédient(s) saisi(s).~%" nb-saisis))
     (pause)))
 
 (defun proposer-ingredients-connus ()
   "Affiche la liste des ingrédients référencés dans les recettes.
    Retour : liste de symboles d'ingrédients"
-  ;; TODO: Implémenter l'extraction des ingrédients
-  ;; - Parser toutes les règles
-  ;; - Extraire les ingrédients requis
-  ;; - Retourner liste unique triée
-  )
+  (let ((ingredients nil))
+    ;; Parcourir toutes les règles
+    (dolist (regle *base-regles*)
+      ;; Parcourir les conditions de chaque règle
+      (dolist (condition (regle-conditions regle))
+        (let ((cle (first condition))
+              (op (second condition)))
+          ;; Les ingrédients sont identifiés par des opérateurs numériques (>=, <=)
+          (when (member op '(>= <=))
+            (pushnew cle ingredients)))))
+    ;; Retourner la liste triée alphabétiquement
+    (sort ingredients #'string< :key #'string)))
 
 (defun saisir-quantite-ingredient (ingredient)
   "Demande la quantité disponible pour un ingrédient.
    Paramètres :
      - ingredient : symbole de l'ingrédient
    Retour : quantité saisie (nombre)"
-  ;; TODO: Implémenter la saisie avec validation
-  ;; - Afficher l'unité appropriée (g, cl, unités)
-  ;; - Valider que c'est un nombre positif
-  ;; - Gérer les erreurs de saisie
-  )
+  (lire-entier 
+   (format nil "Quantité de ~A : " 
+           (string-capitalize (substitute #\Space #\_ (string ingredient))))
+   1))
 
 ;;; ----------------------------------------------------------------------------
 ;;; SAISIE DU MATÉRIEL
@@ -171,69 +160,55 @@
   
   (format t "~%=== SAISIE DU MATÉRIEL ===~%~%")
   
-  ;; Récupérer la liste du matériel connu
-  (let ((materiel (lister-tout-materiel))
-        (nb-saisis 0))
-    
-    (if (null materiel)
-        (progn
-          (format t "Aucun matériel disponible. Chargez d'abord les recettes.~%")
-          (return-from saisir-materiel))
-        (format t "~D équipements disponibles dans le système.~%~%" (length materiel)))
-    
-    ;; Afficher la liste du matériel
+  (let ((materiel (proposer-materiel-connu)))
+    ;; Vérifier si du matériel est disponible
+    (when (null materiel)
+      (format t "Aucun matériel disponible. Chargez d'abord les recettes.~%")
+      (pause)
+      (return-from saisir-materiel))
+    ;; Afficher le nombre et la liste du matériel
+    (format t "~D équipements disponibles dans le système.~%~%" (length materiel))
     (format t "Liste du matériel :~%")
-    (let ((compteur 1))
-      (dolist (mat materiel)
-        (format t "  ~2D. ~A~%" compteur (string-capitalize (substitute #\Space #\_ (string mat))))
-        (incf compteur)))
-    
+    (loop for mat in materiel
+          for compteur from 1
+          do (format t "  ~2D. ~A~%" compteur (string-capitalize (substitute #\Space #\_ (string mat)))))
+
     (format t "~%Saisissez les numéros du matériel disponible, séparés par des espaces.~%")
     (format t "Exemple : 1 3 5 7~%")
     (format t "Ou appuyez sur Entrée pour terminer sans ajouter de matériel.~%~%")
     (format t "Votre sélection : ")
     (finish-output)
-    
-    ;; Lire l'entrée utilisateur
-    (let* ((input (read-line))
-           (choix-str (if (string= (string-trim '(#\Space #\Tab) input) "") 
-                          '() 
-                          (split-string input)))
-           (materiel-selectionne nil))
-      
-      ;; Si aucune sélection
-      (when (null choix-str)
-        (format t "~%Aucun matériel saisi.~%")
-        (pause)
-        (return-from saisir-materiel))
-      
-      ;; Traiter chaque choix
-      (dolist (choix-input choix-str)
-        (let ((choix (parse-integer choix-input :junk-allowed t)))
-          (if (and choix (> choix 0) (<= choix (length materiel)))
-              (let ((mat (nth (1- choix) materiel)))
-                ;; Vérifier si déjà sélectionné
-                (unless (member mat materiel-selectionne)
-                  ;; Ajouter le fait
-                  (ajouter-fait 'materiel mat t)
-                  (push mat materiel-selectionne)
-                  (format t "~A ~A ajouté~%" 
-                          (format-ok)
-                          (string-capitalize (substitute #\Space #\_ (string mat))))
-                  (incf nb-saisis)))
-              (format t "~A Choix invalide : ~A~%" (format-erreur) choix-input))))
-      
-      (format t "~%~D équipement(s) saisi(s).~%" nb-saisis)
-      (pause))))
 
-(defun split-string (string)
+    ;; Lire et traiter l'entrée utilisateur
+    (let* ((input (string-trim '(#\Space #\Tab) (read-line)))
+           (choix-str (unless (string= input "") (diviser-chaine input))))
+      (if (null choix-str)
+          (format t "~%Aucun matériel saisi.~%")
+          (loop with nb-saisis = 0
+                with materiel-selectionne = nil
+                for choix-input in choix-str
+                for choix = (parse-integer choix-input :junk-allowed t)
+                do (if (and choix (plusp choix) (<= choix (length materiel)))
+                       (let ((mat (nth (1- choix) materiel)))
+                         (unless (member mat materiel-selectionne)
+                           (ajouter-fait 'materiel mat t)
+                           (push mat materiel-selectionne)
+                           (format t "~A ~A ajouté~%" 
+                                   (format-ok)
+                                   (string-capitalize (substitute #\Space #\_ (string mat))))
+                           (incf nb-saisis)))
+                       (format t "~A Choix invalide : ~A~%" (format-erreur) choix-input))
+                finally (format t "~%~D équipement(s) saisi(s).~%" nb-saisis))))
+    (pause)))
+
+(defun diviser-chaine (chaine)
   "Divise une chaîne en liste de mots séparés par des espaces.
    Paramètres :
-     - string : chaîne à diviser
+     - chaine : chaîne à diviser
    Retour : liste de chaînes"
   (let ((result nil)
         (word ""))
-    (loop for char across string do
+    (loop for char across chaine do
       (if (or (char= char #\Space) (char= char #\Tab))
           (when (> (length word) 0)
             (push word result)
@@ -246,11 +221,18 @@
 (defun proposer-materiel-connu ()
   "Affiche la liste du matériel référencé dans les recettes.
    Retour : liste de symboles de matériel"
-  ;; TODO: Implémenter l'extraction du matériel
-  ;; - Parser toutes les règles
-  ;; - Extraire le matériel requis
-  ;; - Retourner liste unique triée
-  )
+  (let ((materiel nil))
+    ;; Parcourir toutes les règles
+    (dolist (regle *base-regles*)
+      ;; Parcourir les conditions de chaque règle
+      (dolist (condition (regle-conditions regle))
+        (let ((cle (first condition))
+              (op (second condition)))
+          ;; Le matériel est identifié par l'opérateur = avec valeur T
+          (when (and (eq op '=) (eq (third condition) t))
+            (pushnew cle materiel)))))
+    ;; Retourner la liste triée alphabétiquement
+    (sort materiel #'string< :key #'string)))
 
 ;;; ----------------------------------------------------------------------------
 ;;; CONFIGURATION DES FILTRES
@@ -269,9 +251,8 @@
           (ajouter-fait 'filtres 'vegetarien t)
           (format t "~A Filtre végétarien activé~%" (format-ok)))
         (format t "~A Toutes les recettes (végétariennes et non-végétariennes) seront proposées~%" (format-ok))))
-  
   (format t "~%")
-  
+
   ;; Filtres saisons
   (let ((saisons (configurer-filtres-saisons)))
     (if saisons
@@ -279,9 +260,8 @@
           (ajouter-fait 'filtres saison t)
           (format t "~A Saison ~A ajoutée~%" (format-ok) (string-capitalize (string saison))))
         (format t "~A Toutes les saisons acceptées~%" (format-ok))))
-  
   (format t "~%")
-  
+
   ;; Filtres types
   (let ((types (configurer-filtres-types)))
     (if types
@@ -289,27 +269,23 @@
           (ajouter-fait 'filtres type t)
           (format t "~A Type ~A ajouté~%" (format-ok) (string-capitalize (string type))))
         (format t "~A Tous les types de plats acceptés~%" (format-ok))))
-  
   (format t "~%Configuration des filtres terminée.~%")
   (pause))
 
 (defun configurer-filtre-vegetarien ()
   "Configure le filtre végétarien.
    Retour : t ou nil"
-  
   (lire-oui-non "Souhaitez-vous uniquement des recettes végétariennes ? (o/n) : "))
 
 (defun configurer-filtres-saisons ()
   "Configure les filtres de saisons.
    Retour : liste de saisons sélectionnées"
-  
   (lire-choix-multiple "Sélectionnez les saisons (plusieurs choix possibles) :"
                        '(printemps ete automne hiver)))
 
 (defun configurer-filtres-types ()
   "Configure les filtres de types de plats.
    Retour : liste de types sélectionnés"
-  
   (lire-choix-multiple "Sélectionnez les types de plats (plusieurs choix possibles) :"
                        '(entree plat dessert)))
 
@@ -329,22 +305,15 @@
     (format t "Veuillez d'abord saisir vos ingrédients (option 1) et votre matériel (option 2).~%")
     (pause)
     (return-from lancer-recherche-recettes))
-  
   (format t "Lancement du chaînage avant...~%~%")
-  
-  ;; Lancer le chaînage avant
   (chainage-avant)
   
-  ;; Récupérer les recettes déduites (faits ajoutés par les règles)
-  (let ((recettes-trouvees nil))
-    
-    ;; Parcourir la base de faits pour trouver les recettes déduites
-    (dolist (fait *base-faits*)
-      (let ((nom (car fait)))
-        ;; Les recettes sont les faits qui correspondent à des règles de profondeur 0
-        (let ((regle (obtenir-regle nom)))
-          (when (and regle (= (regle-profondeur regle) 0))
-            (push nom recettes-trouvees)))))
+  ;; Récupérer les recettes déduites (profondeur 0)
+  (let ((recettes-trouvees 
+          (loop for fait in *base-faits*
+                for regle = (obtenir-regle (car fait))
+                when (and regle (zerop (regle-profondeur regle)))
+                collect (car fait))))
     
     ;; Afficher les résultats
     (if recettes-trouvees
@@ -352,7 +321,7 @@
           (format t "~A ~D recette(s) réalisable(s) trouvée(s) !~%~%" 
                   (format-ok) 
                   (length recettes-trouvees))
-          (afficher-recettes-realisables (nreverse recettes-trouvees)))
+          (afficher-recettes-realisables recettes-trouvees))
         (progn
           (format t "~A Aucune recette réalisable avec les ingrédients et le matériel disponibles.~%" 
                   (format-erreur))
@@ -360,13 +329,11 @@
           (format t "  - Ajoutez plus d'ingrédients~%")
           (format t "  - Vérifiez que vous avez le matériel nécessaire~%")
           (format t "  - Modifiez vos filtres (végétarien, saisons, types)~%")))
-    
     (format t "~%")
     
     ;; Proposer d'afficher la trace
     (when (lire-oui-non "Souhaitez-vous afficher la trace du raisonnement ? (o/n) : ")
       (afficher-trace-complete))
-    
     (pause)))
 
 (defun verifier-recette-specifique ()
@@ -552,27 +519,22 @@
      - min : valeur minimale acceptée (optionnel)
      - max : valeur maximale acceptée (optionnel)
    Retour : entier saisi"
-  
   (loop
     (format t "~A" message)
     (finish-output)
     
     (let* ((input (read-line))
            (valeur (parse-integer input :junk-allowed t)))
-      
       (cond
         ;; Pas un nombre
         ((null valeur)
          (format t "~A Veuillez entrer un nombre valide.~%~%" (format-erreur)))
-        
         ;; Vérifier minimum
         ((and min (< valeur min))
          (format t "~A La valeur doit être au moins ~D.~%~%" (format-erreur) min))
-        
         ;; Vérifier maximum
         ((and max (> valeur max))
          (format t "~A La valeur doit être au plus ~D.~%~%" (format-erreur) max))
-        
         ;; Valeur valide
         (t
          (return valeur))))))
@@ -582,23 +544,18 @@
    Paramètres :
      - message : message à afficher
    Retour : t pour oui, nil pour non"
-  
   (loop
     (format t "~A" message)
     (finish-output)
-    
     (let* ((input (string-trim '(#\Space #\Tab) (read-line)))
            (reponse (string-downcase input)))
-      
       (cond
         ((or (string= reponse "o") (string= reponse "oui") 
              (string= reponse "y") (string= reponse "yes"))
          (return t))
-        
         ((or (string= reponse "n") (string= reponse "non") 
              (string= reponse "no"))
          (return nil))
-        
         (t
          (format t "~A Veuillez répondre par 'o' (oui) ou 'n' (non).~%" (format-erreur)))))))
 
@@ -608,10 +565,8 @@
      - message : message à afficher
      - options : liste des options possibles
    Retour : liste des options sélectionnées"
-  
   (loop
     (format t "~A~%" message)
-    
     ;; Afficher les options numérotées
     (let ((compteur 1))
       (dolist (opt options)
@@ -624,13 +579,11 @@
     (let* ((input (string-trim '(#\Space #\Tab) (read-line)))
            (selections nil)
            (erreur nil))
-      
       ;; Si entrée vide, retourner nil (tous acceptés)
       (when (string= input "")
         (return-from lire-choix-multiple nil))
-      
       ;; Parser les choix
-      (let ((choix-str (split-string input)))
+      (let ((choix-str (diviser-chaine input)))
         (dolist (choix-input choix-str)
           (let ((choix (parse-integer choix-input :junk-allowed t)))
             (if (and choix (>= choix 1) (<= choix (length options)))
@@ -640,11 +593,9 @@
                 (progn
                   (format t "~A Choix invalide : ~A~%" (format-erreur) choix-input)
                   (setf erreur t))))))
-      
       ;; Si aucun choix valide, redemander
       (when (and erreur (null selections))
         (format t "~%"))
-      
       ;; Si au moins un choix valide, retourner
       (when selections
         (return (nreverse selections))))))
@@ -653,12 +604,6 @@
   "Met en pause et attend que l'utilisateur appuie sur Entrée."
   (format t "~%Appuyez sur Entrée pour continuer...")
   (read-line))
-
-(defun effacer-ecran ()
-  "Efface l'écran du terminal (multiplateforme)."
-  ;; Utiliser les codes ANSI pour effacer l'écran
-  (format t "~C[2J~C[H" #\Escape #\Escape)
-  (finish-output))
 
 ;;; ----------------------------------------------------------------------------
 ;;; AIDE ET DOCUMENTATION
