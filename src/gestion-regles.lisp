@@ -60,7 +60,7 @@
     (when regle-existante
       (warn "La règle ~A existe déjà et sera remplacée." nom)
       (supprimer-regle nom)))
-  
+
   ;; Créer la nouvelle règle
   (let ((nouvelle-regle (make-regle
                           :nom nom
@@ -104,6 +104,10 @@
   ;; - Extraire cle, operateur, valeur
   ;; - Utiliser comparer-fait de base-faits.lisp
   ;; - Gérer les cas spéciaux (OU, ET, NOT)
+  (let ((cle (first condition))
+        (operateur (second condition))
+        (valeur (third condition)))
+    (comparer-fait cle operateur valeur))
   )
 
 (defun evaluer-conditions (conditions)
@@ -115,6 +119,10 @@
   ;; - Parcourir la liste des conditions
   ;; - Retourner nil dès qu'une condition est fausse
   ;; - Retourner t si toutes sont vraies
+  (dolist (condition conditions)
+    (unless (evaluer-condition condition)
+      (return-from evaluer-conditions nil)))
+  t
   )
 
 ;;; ----------------------------------------------------------------------------
@@ -128,7 +136,12 @@
   ;; - Parcourir *base-regles*
   ;; - Évaluer les conditions de chaque règle
   ;; - Retourner celles dont conditions sont vraies
-  )
+  (let ((candidates '()))
+    (dolist (regle *base-regles*)
+      (when (evaluer-conditions (regle-conditions regle))
+        (push regle candidates)))
+    candidates
+  ))
 
 (defun regles-pour-but (but)
   "Retourne les règles permettant de déduire un but donné.
@@ -137,25 +150,32 @@
    Retour : liste de structures REGLE"
   ;; TODO: Implémenter la sélection par but
   ;; - Filtrer *base-regles* sur le champ conclusion
-  )
+  (let ((resultat '()))
+    (dolist (regle *base-regles*)
+      (when (eq (regle-conclusion regle) but)
+        (push regle resultat)))
+    resultat
+  ))
 
-(defun trier-regles-par-priorite (regles)
-  "Trie une liste de règles par priorité décroissante.
-   Paramètres :
-     - regles : liste de structures REGLE
-   Retour : liste triée"
-  ;; TODO: Implémenter le tri
-  ;; - Utiliser sort avec accesseur regle-priorite
-  )
+; Pour l'instant, ces fonctions ne sont pas nécessaires.
 
-(defun trier-regles-par-profondeur (regles)
-  "Trie une liste de règles par profondeur croissante.
-   Paramètres :
-     - regles : liste de structures REGLE
-   Retour : liste triée"
-  ;; TODO: Implémenter le tri
-  ;; - Profondeur 1+ avant profondeur 0 (compositions avant finales)
-  )
+; (defun trier-regles-par-priorite (regles)
+;   "Trie une liste de règles par priorité décroissante.
+;    Paramètres :
+;      - regles : liste de structures REGLE
+;    Retour : liste triée"
+;   ;; TODO: Implémenter le tri
+;   ;; - Utiliser sort avec accesseur regle-priorite
+;   )
+
+; (defun trier-regles-par-profondeur (regles)
+;   "Trie une liste de règles par profondeur croissante.
+;    Paramètres :
+;      - regles : liste de structures REGLE
+;    Retour : liste triée"
+;   ;; TODO: Implémenter le tri
+;   ;; - Profondeur 1+ avant profondeur 0 (compositions avant finales)
+;   )
 
 ;;; ----------------------------------------------------------------------------
 ;;; APPLICATION DES RÈGLES
@@ -171,17 +191,25 @@
   ;; - Exécuter les actions (décrémenter ingrédients)
   ;; - Ajouter la conclusion à la base de faits
   ;; - Enregistrer la règle déclenchée pour traçabilité
-  )
+  (let ((conditions (regle-conditions regle))
+        (conclusion (regle-conclusion regle))
+        (actions (regle-actions regle)))
+    (when (evaluer-conditions conditions)
+      (dolist (action actions)
+        (apply (car action) (cdr action)))
+      (ajouter-fait 'ingredients conclusion 1)
+      t)))
 
-(defun peut-appliquer-regle-p (regle)
-  "Vérifie si une règle peut être appliquée (conditions satisfaites).
-   Paramètres :
-     - regle : structure REGLE
-   Retour : t si applicable, nil sinon"
-  ;; TODO: Implémenter la vérification
-  ;; - Évaluer les conditions
-  ;; - Vérifier que la conclusion n'est pas déjà dans la base de faits
-  )
+; Inutile pour l'instant
+; (defun peut-appliquer-regle-p (regle)
+;   "Vérifie si une règle peut être appliquée (conditions satisfaites).
+;    Paramètres :
+;      - regle : structure REGLE
+;    Retour : t si applicable, nil sinon"
+;   ;; TODO: Implémenter la vérification
+;   ;; - Évaluer les conditions
+;   ;; - Vérifier que la conclusion n'est pas déjà dans la base de faits
+;   )
 
 ;;; ----------------------------------------------------------------------------
 ;;; AFFICHAGE ET TRAÇABILITÉ
@@ -218,14 +246,38 @@
   ;; - Vérifier recette_vegetarienne si applicable
   ;; - Vérifier les saisons actives
   ;; - Vérifier les types de plats demandés
-  )
+  (let ((metadata (regle-metadata regle)))
+    ;; Exemple de vérification végétarienne
+    (dolist (filtre metadata)
+      (cond
+  ;; Cas 1 : Filtres spéciaux -> on renvoie T
+  ((or (eq filtre ':saisons) (eq filtre ':type) (eq filtre t))
+   t)
 
-(defun extraire-metadata (regle cle)
-  "Extrait une métadonnée d'une règle.
-   Paramètres :
-     - regle : structure REGLE
-     - cle : symbole de la métadonnée recherchée
-   Retour : valeur de la métadonnée ou nil"
-  ;; TODO: Implémenter l'extraction
-  ;; - Chercher dans le champ metadata de la règle
-  )
+  ((eq filtre ':vegetarien)
+   (unless (obtenir-fait 'vegetarien)
+     (return-from regle-respecte-filtres-p nil))
+   t)
+
+  ((listp filtre)
+   (dolist (sous-filtre filtre)
+     (unless (obtenir-fait sous-filtre)
+       (return-from regle-respecte-filtres-p nil)))
+   t) ;; On retourne T à la fin si tout va bien
+
+  ;; Cas 3 (par défaut, T) : Filtre atomique simple
+  (t
+   (unless (obtenir-fait filtre)
+     (return-from regle-respecte-filtres-p nil))
+   )))t))
+
+; Accesseurs de métadonnées implémentés directement via regle-metadata
+; (defun extraire-metadata (regle cle)
+;   "Extrait une métadonnée d'une règle.
+;    Paramètres :
+;      - regle : structure REGLE
+;      - cle : symbole de la métadonnée recherchée
+;    Retour : valeur de la métadonnée ou nil"
+;   ;; TODO: Implémenter l'extraction
+;   ;; - Chercher dans le champ metadata de la règle
+;   )
