@@ -52,7 +52,7 @@
                       (< (regle-profondeur r1) (regle-profondeur r2)))))
               (dolist (regle candidates)
                 (when (appliquer-regle regle)
-                  (push (regle-conclusion regle) *regles-declenchees*)
+                  (push (regle-nom regle) *regles-declenchees*)
                   (chainage-avant)
                   (pop *regles-declenchees*)
                   (desappliquer-regle regle)

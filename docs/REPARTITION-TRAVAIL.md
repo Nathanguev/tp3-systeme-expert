@@ -68,7 +68,7 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
 
 **Tâches** :
 
-- [ ] Implémenter `chainage-avant()` → stratégie en largeur
+- [x] Implémenter `chainage-avant()` → stratégie en largeur
   - Récupérer règles candidates
   - Trier par profondeur (compositions d'abord)
   - Appliquer règles applicables
