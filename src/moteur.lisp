@@ -13,6 +13,9 @@
 (defvar *regles-declenchees* nil
   "Liste des règles déclenchées pendant l'inférence pour traçabilité.")
 
+(defparameter *solutions-trouvees* nil
+  "Liste pour stocker toutes les combinaisons de menus valides trouvées")
+
 (defvar *profondeur-max* 10
   "Profondeur maximale pour éviter les boucles infinies.")
 
@@ -37,7 +40,28 @@
   ;;   * Enregistrer la règle dans *regles-declenchees*
   ;;   * Continuer tant qu'il y a des règles applicables
   ;; - Retourner les nouveaux faits déduits
+  (let ((faits-deduits '())
+        (candidates (regles-candidates)))
+        (if (null candidates)
+            (when *regles-declenchees*
+              (print *regles-declenchees*)
+              (push (copy-list (reverse *regles-declenchees*)) *solutions-trouvees*)))
+            (progn
+              (sort candidates(lambda (r1 r2)
+                      (< (regle-profondeur r1) (regle-profondeur r2))))
+              (dolist (regle candidates)
+                (when (appliquer-regle regle)
+                  (push (regle-conclusion regle) *regles-declenchees*)
+                  (push (regle-conclusion regle) faits-deduits)
+                  (chainage-avant)
+                  (pop *regles-declenchees*)
+                  (desappliquer-regle regle)
+                )
+              )
+            )
+        )
   )
+
 
 (defun chainage-avant-profondeur ()
   "Moteur d'inférence à chaînage avant (stratégie en profondeur).
@@ -52,6 +76,7 @@
   ;; - Similaire à chainage-avant mais avec stratégie différente
   ;; - Appliquer une règle puis relancer immédiatement
   ;; - Utiliser une pile ou récursion pour la profondeur
+  (setf *regles-declenchees* nil)
   )
 
 ;;; ----------------------------------------------------------------------------

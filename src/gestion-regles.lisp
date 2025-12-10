@@ -100,10 +100,6 @@
    Paramètres :
      - condition : triplet (cle operateur valeur)
    Retour : t si la condition est vraie, nil sinon"
-  ;; TODO: Implémenter l'évaluation d'une condition
-  ;; - Extraire cle, operateur, valeur
-  ;; - Utiliser comparer-fait de base-faits.lisp
-  ;; - Gérer les cas spéciaux (OU, ET, NOT)
   (let ((cle (first condition))
         (operateur (second condition))
         (valeur (third condition)))
@@ -115,10 +111,6 @@
    Paramètres :
      - conditions : liste de conditions
    Retour : t si toutes les conditions sont vraies, nil sinon"
-  ;; TODO: Implémenter l'évaluation multiple
-  ;; - Parcourir la liste des conditions
-  ;; - Retourner nil dès qu'une condition est fausse
-  ;; - Retourner t si toutes sont vraies
   (dolist (condition conditions)
     (unless (evaluer-condition condition)
       (return-from evaluer-conditions nil)))
@@ -132,10 +124,6 @@
 (defun regles-candidates ()
   "Retourne la liste des règles dont les conditions sont satisfaites.
    Retour : liste de structures REGLE"
-  ;; TODO: Implémenter la sélection
-  ;; - Parcourir *base-regles*
-  ;; - Évaluer les conditions de chaque règle
-  ;; - Retourner celles dont conditions sont vraies
   (let ((candidates '()))
     (dolist (regle *base-regles*)
       (when (evaluer-conditions (regle-conditions regle))
@@ -148,8 +136,6 @@
    Paramètres :
      - but : symbole du fait à déduire
    Retour : liste de structures REGLE"
-  ;; TODO: Implémenter la sélection par but
-  ;; - Filtrer *base-regles* sur le champ conclusion
   (let ((resultat '()))
     (dolist (regle *base-regles*)
       (when (eq (regle-conclusion regle) but)
@@ -197,10 +183,27 @@
     (when (evaluer-conditions conditions)
       (dolist (action actions)
         (apply (car action) (cdr action)))
-      (ajouter-fait 'ingredients conclusion 1)
+        (ajouter-fait 'ingredients conclusion 1)
       t)))
 
-; Inutile pour l'instant
+; Fonction inverse de appliquer-regle pour désappliquer une règle (pour le backtracking)
+(defun desappliquer-regle (regle)
+  "Désapplique une règle : exécute les actions et retire la conclusion.
+   Paramètres :
+     - regle : structure REGLE à désappliquer
+   Retour : t si désappliquée avec succès, nil sinon"
+  (let ((conditions (regle-conditions regle))
+        (conclusion (regle-conclusion regle))
+        (actions (regle-actions regle)))
+    (when (member conclusion (cdr (assoc 'ingredients *base-faits*)))
+      (dolist (action actions)
+        (if (eq (car action) 'decremente-fait)
+            (setf (car action) 'incremente-fait)
+            (setf (car action) 'decremente-fait))
+        (apply (car action) (cdr action)))
+      (ajouter-fait 'ingredients conclusion -1)
+      t)))
+
 ; (defun peut-appliquer-regle-p (regle)
 ;   "Vérifie si une règle peut être appliquée (conditions satisfaites).
 ;    Paramètres :
