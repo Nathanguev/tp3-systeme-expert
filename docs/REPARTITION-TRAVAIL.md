@@ -30,14 +30,14 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
 
 **Tâches** :
 
-- [ ] Implémenter `initialiser-base-faits()`
-- [ ] Implémenter `ajouter-fait(cle, valeur)`
-- [ ] Implémenter `obtenir-fait(cle)`
-- [ ] Implémenter `modifier-fait(cle, nouvelle-valeur)`
-- [ ] Implémenter `comparer-fait(cle, operateur, valeur)` → **IMPORTANT pour les règles**
-- [ ] Implémenter `decremente-fait(cle, quantite)` → **IMPORTANT pour ordre 0+**
-- [ ] Implémenter `afficher-base-faits()`
-- [ ] Tester avec des faits simples
+- [x] Implémenter `initialiser-base-faits()`
+- [x] Implémenter `ajouter-fait(cle, valeur)`
+- [x] Implémenter `obtenir-fait(cle)`
+- [x] Implémenter `modifier-fait(cle, nouvelle-valeur)`
+- [x] Implémenter `comparer-fait(cle, operateur, valeur)` → **IMPORTANT pour les règles**
+- [x] Implémenter `decremente-fait(cle, quantite)` → **IMPORTANT pour ordre 0+**
+- [x] Implémenter `afficher-base-faits()`
+- [x] Tester avec des faits simples
 
 **Dépendances** : Aucune  
 **Fichiers touchés** : `src/base-faits.lisp`
@@ -50,13 +50,13 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
 **Tâches** :
 
 - [x] Implémenter `ajouter-regle(...)` → **DÉJÀ FAIT**
-- [ ] Implémenter `evaluer-condition(condition)` → utilise `comparer-fait`
-- [ ] Implémenter `evaluer-conditions(conditions)` → conjonction ET
-- [ ] Implémenter `regles-candidates()` → pour chaînage avant
-- [ ] Implémenter `regles-pour-but(but)` → pour chaînage arrière
-- [ ] Implémenter `appliquer-regle(regle)` → exécute actions + conclusion
-- [ ] Implémenter `regle-respecte-filtres-p(regle)`
-- [ ] Tester l'évaluation de conditions simples
+- [x] Implémenter `evaluer-condition(condition)` → utilise `comparer-fait`
+- [x] Implémenter `evaluer-conditions(conditions)` → conjonction ET
+- [x] Implémenter `regles-candidates()` → pour chaînage avant
+- [x] Implémenter `regles-pour-but(but)` → pour chaînage arrière
+- [x] Implémenter `appliquer-regle(regle)` → exécute actions + conclusion
+- [x] Implémenter `regle-respecte-filtres-p(regle)`
+- [x] Tester l'évaluation de conditions simples
 
 **Dépendances** : `base-faits.lisp` (doit être terminé)  
 **Fichiers touchés** : `src/gestion-regles.lisp`

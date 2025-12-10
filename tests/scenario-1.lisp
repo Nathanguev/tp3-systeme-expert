@@ -14,47 +14,47 @@
 
 (defun executer-scenario-1 ()
   "Scénario 1 : Utilisateur avec ingrédients pour quiche lorraine."
-  
+
   (format t "~%")
   (format t "========================================~%")
   (format t " SCÉNARIO DE TEST 1~%")
   (format t " Objectif : Quiche lorraine~%")
   (format t "========================================~%")
   (format t "~%")
-  
+
   ;; Réinitialiser le système
   (initialiser-base-faits)
   (reinitialiser-moteur)
-  
+
   ;; TODO: Configurer les ingrédients disponibles
   ;; Exemple basé sur le TP2 :
-  ;; (ajouter-fait 'beurre 200)
-  ;; (ajouter-fait 'oeuf 12)
-  ;; (ajouter-fait 'creme 70)
-  ;; (ajouter-fait 'lard 300)
-  ;; (ajouter-fait 'gruyere 70)
-  ;; (ajouter-fait 'farine 250)
-  ;; (ajouter-fait 'eau 2000)
-  
+  ;; (ajouter-fait 'ingredients 'beurre 200)
+  ;; (ajouter-fait 'ingredients 'oeuf 12)
+  ;; (ajouter-fait 'ingredients 'creme 70)
+  ;; (ajouter-fait 'ingredients 'lard 300)
+  ;; (ajouter-fait 'ingredients 'gruyere 70)
+  ;; (ajouter-fait 'ingredients 'farine 250)
+  ;; (ajouter-fait 'ingredients 'eau 2000)
+
   ;; TODO: Configurer le matériel disponible
-  ;; (ajouter-fait 'bol t)
-  ;; (ajouter-fait 'rouleau t)
-  ;; (ajouter-fait 'moule_tarte t)
-  ;; (ajouter-fait 'fouet t)
-  
+  ;; (ajouter-fait 'materiel 'bol t)
+  ;; (ajouter-fait 'materiel 'rouleau t)
+  ;; (ajouter-fait 'materiel 'moule_tarte t)
+  ;; (ajouter-fait 'materiel 'fouet t)
+
   ;; TODO: Configurer les filtres
-  ;; (ajouter-fait 'recette_vegetarienne nil)
-  ;; (ajouter-fait 'type_plat t)
-  ;; (ajouter-fait 'type_entree nil)
-  ;; (ajouter-fait 'type_dessert nil)
-  ;; (ajouter-fait 'recette_printemps nil)
-  ;; (ajouter-fait 'recette_ete nil)
-  ;; (ajouter-fait 'recette_automne nil)
-  ;; (ajouter-fait 'recette_hiver nil)
-  
+  ;; (ajouter-fait 'filtres 'recette_vegetarienne nil)
+  ;; (ajouter-fait 'filtres 'type_plat t)
+  ;; (ajouter-fait 'filtres 'type_entree nil)
+  ;; (ajouter-fait 'filtres 'type_dessert nil)
+  ;; (ajouter-fait 'filtres 'recette_printemps nil)
+  ;; (ajouter-fait 'filtres 'recette_ete nil)
+  ;; (ajouter-fait 'filtres 'recette_automne nil)
+  ;; (ajouter-fait 'filtres 'recette_hiver nil)
+
   (format t "Faits initiaux configurés :~%")
   (afficher-base-faits)
-  
+
   ;; Lancer le chaînage avant
   (format t "~%Lancement du chaînage avant...~%")
   (let ((resultats (chainage-avant)))
@@ -64,7 +64,7 @@
           (format t "Recettes réalisables : ~A~%" resultats)
           (afficher-trace-inference))
         (format t "Aucune recette réalisable.~%")))
-  
+
   ;; Afficher les statistiques
   (format t "~%Statistiques :~%")
   (afficher-statistiques))
