@@ -149,18 +149,18 @@ D'après le sujet, voici les éléments **obligatoires** à implémenter :
 
 **Tâches** :
 
-- [ ] Implémenter `chainage-arriere(but)` → stratégie goal-driven
+- [x] Implémenter `chainage-arriere(but)` → stratégie goal-driven
   - Vérifier si but déjà dans base de faits
   - Chercher règles concluant ce but
   - Prouver récursivement les conditions
   - Gérer profondeur maximale
-- [ ] Implémenter `prouver-but-recursif(but, profondeur)`
+- [x] Implémenter `prouver-but-recursif(but, profondeur)`
 - [ ] Implémenter `expliquer-conclusion(fait)` → arbre de déduction
-- [ ] Implémenter `verifier-recette-specifique()` dans interface
+- [x] Implémenter `verifier-recette-specifique()` dans interface
   - Proposer liste de recettes
   - Lancer chaînage-arriere
   - Expliquer succès ou échec
-- [ ] Tester avec une recette spécifique
+- [x] Tester avec une recette spécifique
 
 **Dépendances** : `gestion-regles.lisp`, chaînage-avant terminé  
 **Fichiers touchés** : `src/moteur.lisp`, `src/interface.lisp`

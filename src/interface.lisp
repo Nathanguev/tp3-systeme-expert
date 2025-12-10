@@ -15,16 +15,17 @@
   (loop
     (format t "~%")
     (format t "=== MENU PRINCIPAL ===~%")
-    (format t "1. Saisir les ingrédients disponibles~%")
-    (format t "2. Saisir le matériel disponible~%")
-    (format t "3. Configurer les filtres (végétarien, saisons, type)~%")
-    (format t "4. Lancer la recherche de recettes (chaînage avant)~%")
-    (format t "5. Vérifier une recette spécifique (chaînage arrière)~%")
-    (format t "6. Afficher la base de faits actuelle~%")
-    (format t "7. Afficher la trace du raisonnement~%")
-    (format t "8. Afficher les statistiques~%")
-    (format t "9. Réinitialiser le système~%")
-    (format t "0. Quitter~%")
+    (format t "~%Options :~%")
+    (format t "   1. Saisir les ingrédients disponibles~%")
+    (format t "   2. Saisir le matériel disponible~%")
+    (format t "   3. Configurer les filtres (végétarien, saisons, type)~%")
+    (format t "   4. Lancer la recherche de recettes (chaînage avant)~%")
+    (format t "   5. Vérifier une recette spécifique (chaînage arrière)~%")
+    (format t "   6. Afficher la base de faits actuelle~%")
+    (format t "   7. Afficher la trace du raisonnement~%")
+    (format t "   8. Afficher les statistiques~%")
+    (format t "   9. Réinitialiser le système~%")
+    (format t "   0. Quitter~%")
     (format t "~%Votre choix : ")
     (finish-output)
     
@@ -73,10 +74,9 @@
         
         ;; Réinitialiser
         ((eql choix 9)
-         (format t "~%Réinitialisation du système...~%")
          (initialiser-base-faits)
          (reinitialiser-moteur)
-         (format t "Système réinitialisé.~%"))
+         (format t "~%Système réinitialisé.~%"))
         
         ;; Choix invalide
         (t
@@ -339,13 +339,48 @@
 (defun verifier-recette-specifique ()
   "Vérifie si une recette spécifique peut être réalisée (chaînage arrière).
    Demande à l'utilisateur quelle recette vérifier."
-  ;; TODO: Implémenter la vérification
-  ;; - Afficher liste des recettes disponibles
-  ;; - Demander choix utilisateur
-  ;; - Lancer chainage-arriere avec le but choisi
-  ;; - Afficher le résultat (possible ou non)
-  ;; - Expliquer pourquoi (manque d'ingrédients/matériel)
-  )
+  
+  (format t "~%=== VÉRIFICATION D'UNE RECETTE SPÉCIFIQUE ===~%~%")
+  
+  (let ((recettes (lister-toutes-recettes)))
+    ;; Vérifier si des recettes sont disponibles
+    (when (null recettes)
+      (format t "Aucune recette disponible. Chargez d'abord les recettes.~%")
+      (pause)
+      (return-from verifier-recette-specifique))
+    
+    ;; Afficher la liste des recettes
+    (format t "~D recette(s) disponible(s) dans le système.~%~%" (length recettes))
+    (format t "Liste des recettes :~%")
+    (loop for rec in recettes
+          for compteur from 1
+          do (format t "  ~2D. ~A~%" compteur 
+                     (string-capitalize (substitute #\Space #\_ (string rec)))))
+    
+    ;; Demander le choix
+    (format t "~%")
+    (let ((choix (lire-entier "Numéro de la recette à vérifier (0 pour annuler) : " 0 (length recettes))))
+      (when (zerop choix)
+        (format t "~%Vérification annulée.~%")
+        (pause)
+        (return-from verifier-recette-specifique))
+      
+      ;; Lancer le chaînage arrière
+      (let* ((recette-choisie (nth (1- choix) recettes))
+             (resultat (chainage-arriere recette-choisie)))
+        (if resultat
+            (format t "~A ~A PEUT être réalisée !~%" 
+                    (format-ok)
+                    (string-capitalize (substitute #\Space #\_ (string recette-choisie))))
+            (format t "~A ~A NE PEUT PAS être réalisée.~%" 
+                    (format-erreur)
+                    (string-capitalize (substitute #\Space #\_ (string recette-choisie)))))
+        (format t "~%")
+        
+        ;; Proposer d'afficher la trace
+        (when (lire-oui-non "Souhaitez-vous afficher la trace du raisonnement ? (o/n) : ")
+          (afficher-trace-complete))
+        (pause)))))
 
 ;;; ----------------------------------------------------------------------------
 ;;; AFFICHAGE DES RÉSULTATS
@@ -449,24 +484,41 @@
   "Affiche la trace complète du raisonnement effectué.
    Montre les règles déclenchées et les faits déduits."
   
-  (format t "~%~%=== TRACE DU RAISONNEMENT ===~%~%")
+  (format t "~%=== TRACE DU RAISONNEMENT ===~%~%")
   
-  (let ((trace (obtenir-trace)))
-    
-    (if (null trace)
-        (format t "Aucune trace disponible. Lancez d'abord une recherche de recettes.~%")
-        (progn
-          (format t "Règles déclenchées dans l'ordre :~%~%")
-          (let ((etape 1))
-            (dolist (entree trace)
-              (let ((regle-nom (car entree))
-                    (fait-deduit (cdr entree)))
-                (format t "  Étape ~D : Règle ~A -> Fait ~A~%" 
-                        etape 
-                        (string-capitalize (substitute #\Space #\_ (string regle-nom)))
-                        (string-capitalize (substitute #\Space #\_ (string fait-deduit))))
-                (incf etape))))
-          (format t "~%Total : ~D règle(s) déclenchée(s)~%" (length trace))))))
+  (unless (or *regles-declenchees* *trace-echecs*)
+    (format t "Aucune trace disponible. Lancez d'abord une recherche de recettes.~%")
+    (pause)
+    (return-from afficher-trace-complete))
+  
+  ;; Afficher les succès
+  (when *regles-declenchees*
+    (format t "Règles déclenchées (succès) :~%~%")
+    (loop for (regle . fait) in (reverse *regles-declenchees*)
+          for etape from 1
+          do (format t "  ~A Étape ~D : Règle ~A -> Fait ~A~%" 
+                    (format-ok) etape regle
+                    (string-capitalize (substitute #\Space #\_ (string fait)))))
+    (format t "~%Total : ~D règle(s) déclenchée(s)~%" (length *regles-declenchees*)))
+  
+  ;; Afficher les échecs
+  (when *trace-echecs*
+    (format t "Tentatives échouées :~%~%")
+    (loop for echec in (reverse *trace-echecs*)
+          for num from 1
+          do (let ((but (getf echec :but))
+                   (regle (getf echec :regle))
+                   (raison (getf echec :raison))
+                   (conditions (getf echec :conditions-manquantes)))
+               (format t "  ~A ~D. ~:[Règle ~A pour ~A~;But ~A : ~A~]~%" 
+                      (format-erreur) num raison
+                      (if raison but regle)
+                      (if raison raison (string-capitalize (substitute #\Space #\_ (string but)))))
+               (dolist (cond conditions)
+                 (format t "       - ~A (requis: ~A)~%" 
+                        (string-capitalize (substitute #\Space #\_ (string (first cond))))
+                        (second cond)))))
+    (format t "~%Total : ~D échec(s)~%" (length *trace-echecs*))))
 
 (defun visualiser-arbre-raisonnement (recette)
   "Visualise l'arbre de raisonnement pour une recette.
@@ -557,7 +609,7 @@
              (string= reponse "no"))
          (return nil))
         (t
-         (format t "~A Veuillez répondre par 'o' (oui) ou 'n' (non).~%" (format-erreur)))))))
+         (format t "~A Veuillez répondre par 'o' (oui) ou 'n' (non).~%~%" (format-erreur)))))))
 
 (defun lire-choix-multiple (message options)
   "Lit un choix multiple depuis l'entrée utilisateur.

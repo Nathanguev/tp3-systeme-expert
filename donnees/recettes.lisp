@@ -162,9 +162,7 @@
 ;;; ----------------------------------------------------------------------------
 
 (defun lister-toutes-recettes ()
-  "Retourne la liste de toutes les recettes disponibles.
-   Retour : liste de symboles"
-  ;; TODO: Implémenter le listage
-  ;; - Parser *base-regles*
-  ;; - Extraire les conclusions de profondeur 0
-  )
+  "Retourne la liste de toutes les recettes disponibles triée.
+   Retour : liste de symboles (conclusions des recettes)"
+  (sort (loop for regle in *base-regles*
+    collect (regle-conclusion regle)) #'string<))

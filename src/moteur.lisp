@@ -13,6 +13,9 @@
 (defvar *regles-declenchees* nil
   "Liste des règles déclenchées pendant l'inférence pour traçabilité.")
 
+(defvar *trace-echecs* nil
+  "Liste des tentatives échouées pendant le chaînage arrière.")
+
 (defvar *profondeur-max* 10
   "Profondeur maximale pour éviter les boucles infinies.")
 
@@ -68,14 +71,9 @@
    Paramètres :
      - but : symbole du fait à prouver
    Retour : t si le but est prouvé, nil sinon"
-  ;; TODO: Implémenter le chaînage arrière
-  ;; - Vérifier si le but est déjà dans la base de faits
-  ;; - Sinon, chercher les règles concluant ce but
-  ;; - Pour chaque règle :
-  ;;   * Vérifier récursivement chaque condition
-  ;;   * Si toutes vraies, appliquer la règle
-  ;; - Gérer la profondeur maximale pour éviter boucles
-  )
+  (setf *regles-declenchees* nil)
+  (setf *trace-echecs* nil)
+  (prouver-but-recursif but 0))
 
 (defun prouver-but-recursif (but profondeur)
   "Fonction auxiliaire récursive pour le chaînage arrière.
@@ -83,11 +81,39 @@
      - but : fait à prouver
      - profondeur : profondeur courante de récursion
    Retour : t si prouvé, nil sinon"
-  ;; TODO: Implémenter la preuve récursive
-  ;; - Vérifier la profondeur maximale
-  ;; - Si but dans base de faits, retourner t
-  ;; - Sinon chercher règles et prouver conditions
-  )
+  
+  ;; Vérifier la profondeur maximale et si le but est déjà prouvé
+  (when (or (>= profondeur *profondeur-max*) (obtenir-fait but))
+    (return-from prouver-but-recursif (obtenir-fait but)))
+  
+  ;; Chercher les règles qui concluent ce but
+  (let ((regles-but (regles-pour-but but)))
+    (when (and (null regles-but) (zerop profondeur))
+      (push (list :but but :raison "Aucune règle ne conclut ce fait") *trace-echecs*)
+      (return-from prouver-but-recursif nil))
+    
+    ;; Essayer chaque règle
+    (dolist (regle regles-but)
+      (let ((conditions-manquantes nil))
+        ;; Vérifier toutes les conditions
+        (dolist (condition (regle-conditions regle))
+          (unless (or (obtenir-fait (first condition))
+                     (prouver-but-recursif (first condition) (1+ profondeur)))
+            (push (list (first condition) (third condition)) conditions-manquantes)))
+        
+        ;; Si toutes les conditions sont prouvées, appliquer la règle
+        (if (null conditions-manquantes)
+            (progn
+              (appliquer-regle regle)
+              (push (cons (regle-nom regle) but) *regles-declenchees*)
+              (return-from prouver-but-recursif t))
+            ;; Sinon, enregistrer l'échec (seulement pour profondeur 0)
+            (when (zerop profondeur)
+              (push (list :but but 
+                         :regle (regle-nom regle)
+                         :conditions-manquantes (nreverse conditions-manquantes))
+                    *trace-echecs*))))))
+  nil)
 
 ;;; ----------------------------------------------------------------------------
 ;;; MOTEUR MIXTE
@@ -199,7 +225,8 @@
 
 (defun reinitialiser-moteur ()
   "Réinitialise le moteur d'inférence (nettoie la traçabilité)."
-  (setf *regles-declenchees* nil))
+  (setf *regles-declenchees* nil)
+  (setf *trace-echecs* nil))
 
 (defun statistiques-inference ()
   "Retourne des statistiques sur l'inférence effectuée.
