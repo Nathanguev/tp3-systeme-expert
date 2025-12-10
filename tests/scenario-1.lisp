@@ -6,8 +6,16 @@
 ;;;; ============================================================================
 
 (load "src/base-faits.lisp")
-;;; Charger le système
-(load "main.lisp")
+(load "src/base-regles.lisp")       ; Données brutes des recettes
+(load "src/gestion-regles.lisp")    ; Gestion de la base de règles
+(load "src/moteur.lisp")
+(load "src/interface.lisp")
+(load "donnees/recettes.lisp")      ; Parsing et chargement des règles
+
+;; Initialisation de la base de faits
+(initialiser-base-faits)
+;; Chargement des règles depuis les données
+(charger-recettes)
 
 ;;; ----------------------------------------------------------------------------
 ;;; CONFIGURATION DU SCÉNARIO 1
@@ -111,7 +119,7 @@
   (ajouter-fait 'materiel 'four t)
   (ajouter-fait 'materiel 'casserole t)
 
-  (format t "Faits initiaux configurés :~%")
+  (format t "Faits initiaux :~%")
   (afficher-base-faits)
 
   ;; Tester le chaînage arrière sur une recette spécifique
@@ -119,14 +127,11 @@
   (let ((resultat (chainage-arriere 'tarte_tatin)))
     (format t "~%Résultat :~%")
     (if resultat
-        (progn
-          (format t "La recette 'tarte_tatin' PEUT être réalisée !~%")
-          (format t "~%Trace du raisonnement :~%")
-          (dolist (entree (reverse *regles-declenchees*))
-            (format t "  - Règle ~A -> ~A~%" (car entree) (cdr entree))))
-        (format t "La recette 'tarte_tatin' NE PEUT PAS être réalisée.~%")))
+      (format t "La recette 'tarte_tatin' PEUT être réalisée !~%")
+      (format t "La recette 'tarte_tatin' NE PEUT PAS être réalisée.~%"))
+  (afficher-trace-complete))
 
-  (format t "~%Base de faits après chaînage arrière :~%")
+  (format t "~%Faits après chaînage arrière :~%")
   (afficher-base-faits))
 
 (defun executer-tous-scenarios ()

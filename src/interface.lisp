@@ -484,24 +484,41 @@
   "Affiche la trace complète du raisonnement effectué.
    Montre les règles déclenchées et les faits déduits."
   
-  (format t "~%~%=== TRACE DU RAISONNEMENT ===~%~%")
+  (format t "~%=== TRACE DU RAISONNEMENT ===~%~%")
   
-  (let ((trace (obtenir-trace)))
-    
-    (if (null trace)
-        (format t "Aucune trace disponible. Lancez d'abord une recherche de recettes.~%")
-        (progn
-          (format t "Règles déclenchées dans l'ordre :~%~%")
-          (let ((etape 1))
-            (dolist (entree trace)
-              (let ((regle-nom (car entree))
-                    (fait-deduit (cdr entree)))
-                (format t "  Étape ~D : Règle ~A -> Fait ~A~%" 
-                        etape 
-                        (string-capitalize (substitute #\Space #\_ (string regle-nom)))
-                        (string-capitalize (substitute #\Space #\_ (string fait-deduit))))
-                (incf etape))))
-          (format t "~%Total : ~D règle(s) déclenchée(s)~%" (length trace))))))
+  (unless (or *regles-declenchees* *trace-echecs*)
+    (format t "Aucune trace disponible. Lancez d'abord une recherche de recettes.~%")
+    (pause)
+    (return-from afficher-trace-complete))
+  
+  ;; Afficher les succès
+  (when *regles-declenchees*
+    (format t "Règles déclenchées (succès) :~%~%")
+    (loop for (regle . fait) in (reverse *regles-declenchees*)
+          for etape from 1
+          do (format t "  ~A Étape ~D : Règle ~A -> Fait ~A~%" 
+                    (format-ok) etape regle
+                    (string-capitalize (substitute #\Space #\_ (string fait)))))
+    (format t "~%Total : ~D règle(s) déclenchée(s)~%" (length *regles-declenchees*)))
+  
+  ;; Afficher les échecs
+  (when *trace-echecs*
+    (format t "Tentatives échouées :~%~%")
+    (loop for echec in (reverse *trace-echecs*)
+          for num from 1
+          do (let ((but (getf echec :but))
+                   (regle (getf echec :regle))
+                   (raison (getf echec :raison))
+                   (conditions (getf echec :conditions-manquantes)))
+               (format t "  ~A ~D. ~:[Règle ~A pour ~A~;But ~A : ~A~]~%" 
+                      (format-erreur) num raison
+                      (if raison but regle)
+                      (if raison raison (string-capitalize (substitute #\Space #\_ (string but)))))
+               (dolist (cond conditions)
+                 (format t "       - ~A (requis: ~A)~%" 
+                        (string-capitalize (substitute #\Space #\_ (string (first cond))))
+                        (second cond)))))
+    (format t "~%Total : ~D échec(s)~%" (length *trace-echecs*))))
 
 (defun visualiser-arbre-raisonnement (recette)
   "Visualise l'arbre de raisonnement pour une recette.
