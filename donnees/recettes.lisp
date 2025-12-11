@@ -162,47 +162,7 @@
 ;;; ----------------------------------------------------------------------------
 
 (defun lister-toutes-recettes ()
-  "Retourne la liste de toutes les recettes disponibles.
-   Retour : liste de symboles"
-  ;; TODO: Implémenter le listage
-  ;; - Parser *base-regles*
-  ;; - Extraire les conclusions de profondeur 0
-  )
-
-(defun lister-tous-ingredients ()
-  "Retourne la liste de tous les ingrédients référencés.
-   Retour : liste de symboles"
-  (let ((ingredients nil))
-    ;; Parcourir toutes les règles
-    (dolist (regle *base-regles*)
-      ;; Parcourir les conditions de chaque règle
-      (dolist (condition (regle-conditions regle))
-        ;; Vérifier si c'est une condition numérique (ingrédient)
-        ;; Format: (ingredient >= quantite)
-        (when (and (listp condition)
-                   (= (length condition) 3)
-                   (member (second condition) '(>= <= > <))
-                   (numberp (third condition)))
-          ;; Ajouter l'ingrédient s'il n'est pas déjà dans la liste
-          (pushnew (first condition) ingredients))))
-    ;; Trier alphabétiquement et retourner
-    (sort ingredients #'string< :key #'symbol-name)))
-
-(defun lister-tout-materiel ()
-  "Retourne la liste de tout le matériel référencé.
-   Retour : liste de symboles"
-  (let ((materiel nil))
-    ;; Parcourir toutes les règles
-    (dolist (regle *base-regles*)
-      ;; Parcourir les conditions de chaque règle
-      (dolist (condition (regle-conditions regle))
-        ;; Vérifier si c'est une condition de matériel booléen
-        ;; Format: (materiel = t)
-        (when (and (listp condition)
-                   (= (length condition) 3)
-                   (eq (second condition) '=)
-                   (eq (third condition) t))
-          ;; Ajouter le matériel s'il n'est pas déjà dans la liste
-          (pushnew (first condition) materiel))))
-    ;; Trier alphabétiquement et retourner
-    (sort materiel #'string< :key #'symbol-name)))
+  "Retourne la liste de toutes les recettes disponibles triée.
+   Retour : liste de symboles (conclusions des recettes)"
+  (sort (loop for regle in *base-regles*
+    collect (regle-conclusion regle)) #'string<))
