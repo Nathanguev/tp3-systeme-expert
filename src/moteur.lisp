@@ -51,7 +51,7 @@
         (if (null candidates)
             (return-from chainage-avant))
             (progn
-              (setf candidates (sort candidates(lambda (r1 r2)
+              (setf candidates (sort candidates (lambda (r1 r2)
                       (< (regle-profondeur r1) (regle-profondeur r2)))))
               (dolist (regle candidates)
                 (when (appliquer-regle regle)

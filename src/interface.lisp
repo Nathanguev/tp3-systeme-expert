@@ -329,7 +329,7 @@
           ;(afficher-recettes-realisables (nreverse recettes-trouvees))
           (format t "~%--- RECETTES ---~%")
           (dolist (recette recettes-trouvees)
-            ;Affichage des recettes réalisables sans utiliser les fonctions non implémentées
+            ; Affichage des recettes réalisables sans utiliser les fonctions non implémentées.
             (format t "  ~A~%" recette))
           )
         (progn

@@ -19,8 +19,6 @@
 ;;; FONCTION PRINCIPALE
 ;;; ----------------------------------------------------------------------------
 
-
-
 (defun demarrer-systeme-expert ()
   "Point d'entrée principal du système expert culinaire.
    Lance l'interface utilisateur et coordonne l'exécution complète."
@@ -35,8 +33,7 @@
   ;; Chargement des règles depuis les données
   (charger-recettes)
   ;; Lancement de l'interface utilisateur
-  (interface-principale)
-)
+  (interface-principale))
 
 
 
