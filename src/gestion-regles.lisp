@@ -201,7 +201,7 @@
         (if (eq (car action) 'decremente-fait)
             (apply 'incremente-fait (cdr action))
             (apply 'decremente-fait (cdr action))))
-      (ajouter-fait 'ingredients conclusion -1)
+      (decremente-fait conclusion 1)
       t)))
 
 ; (defun peut-appliquer-regle-p (regle)

@@ -99,8 +99,7 @@
    Paramètres :
      - cle : symbole identifiant le fait
    Retour : t si supprimé, nil si non trouvé"
-
-  (let ((fait (obtenir-fait cle)))
+  (let ((fait (assoc cle (cadr (assoc 'ingredients *base-faits*)))))
     (if fait
       (progn
         (dolist (type '(ingredients materiel filtres))
@@ -131,6 +130,8 @@
       (progn
         (push (list 'decremente-fait cle (cdr fait)) *historique-faits*)
         (setf (cdr fait) (- (cdr fait) quantite))
+        (when (eq (cdr fait) 0)
+            (supprimer-fait cle))
         (cdr fait)
       )
       nil
@@ -145,14 +146,17 @@
    Retour : nouvelle valeur ou nil si impossible"
 
   (let ((fait (assoc cle (cadr (assoc 'ingredients *base-faits*)))))
-    (if (and fait (numberp (cdr fait)))
-      (progn
-        (push (list 'incremente-fait cle (cdr fait)) *historique-faits*)
-        (setf (cdr fait) (+ (cdr fait) quantite))
-        (cdr fait)
+    (if fait
+      (if (and fait (numberp (cdr fait)))
+        (progn
+          (push (list 'incremente-fait cle (cdr fait)) *historique-faits*)
+          (setf (cdr fait) (+ (cdr fait) quantite))
+          (cdr fait)
+        )
+        nil
       )
-      nil
-  )
+      (ajouter-fait 'ingredients cle quantite)
+    )
 ))
 
 ;;; ----------------------------------------------------------------------------
