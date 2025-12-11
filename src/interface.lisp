@@ -28,56 +28,56 @@
     (format t "   0. Quitter~%")
     (format t "~%Votre choix : ")
     (finish-output)
-    
+
     ;; Lire le choix utilisateur
     (let* ((input (read-line))
            (choix (parse-integer input :junk-allowed t)))
-      
+
       (cond
         ;; Quitter
         ((eql choix 0)
          (format t "~%Au revoir !~%")
          (return))
-        
+
         ;; Saisir ingrédients
         ((eql choix 1)
          (saisir-ingredients))
-        
+
         ;; Saisir matériel
         ((eql choix 2)
          (saisir-materiel))
-        
+
         ;; Configurer filtres
         ((eql choix 3)
          (configurer-filtres))
-        
+
         ;; Lancer recherche
         ((eql choix 4)
          (lancer-recherche-recettes))
-        
+
         ;; Vérifier recette spécifique
         ((eql choix 5)
          (verifier-recette-specifique))
-        
+
         ;; Afficher base de faits
         ((eql choix 6)
          (afficher-base-faits)
          (pause))
-        
+
         ;; Afficher trace
         ((eql choix 7)
          (afficher-trace-complete))
-        
+
         ;; Afficher statistiques
         ((eql choix 8)
          (afficher-statistiques))
-        
+
         ;; Réinitialiser
         ((eql choix 9)
          (initialiser-base-faits)
          (reinitialiser-moteur)
          (format t "~%Système réinitialisé.~%"))
-        
+
         ;; Choix invalide
         (t
          (format t "~%Choix invalide. Veuillez entrer un nombre entre 0 et 9.~%")
@@ -90,9 +90,9 @@
 (defun saisir-ingredients ()
   "Interface de saisie des ingrédients disponibles.
    Permet à l'utilisateur d'entrer les ingrédients et leurs quantités."
-  
+
   (format t "~%=== SAISIE DES INGRÉDIENTS ===~%~%")
-  
+
   (let ((ingredients (proposer-ingredients-connus)))
     ;; Vérifier si des ingrédients sont disponibles
     (when (null ingredients)
@@ -116,7 +116,7 @@
           do (let* ((ingredient (nth (1- choix) ingredients))
                     (quantite (saisir-quantite-ingredient ingredient)))
                (ajouter-fait 'ingredients ingredient quantite)
-               (format t "~A ~A : ~D ajouté~%~%" 
+               (format t "~A ~A : ~D ajouté~%~%"
                        (format-ok)
                        (string-capitalize (substitute #\Space #\_ (string ingredient)))
                        quantite)
@@ -145,8 +145,8 @@
    Paramètres :
      - ingredient : symbole de l'ingrédient
    Retour : quantité saisie (nombre)"
-  (lire-entier 
-   (format nil "Quantité de ~A : " 
+  (lire-entier
+   (format nil "Quantité de ~A : "
            (string-capitalize (substitute #\Space #\_ (string ingredient))))
    1))
 
@@ -157,9 +157,9 @@
 (defun saisir-materiel ()
   "Interface de saisie du matériel de cuisine disponible.
    Permet à l'utilisateur de sélectionner le matériel possédé."
-  
+
   (format t "~%=== SAISIE DU MATÉRIEL ===~%~%")
-  
+
   (let ((materiel (proposer-materiel-connu)))
     ;; Vérifier si du matériel est disponible
     (when (null materiel)
@@ -193,7 +193,7 @@
                          (unless (member mat materiel-selectionne)
                            (ajouter-fait 'materiel mat t)
                            (push mat materiel-selectionne)
-                           (format t "~A ~A ajouté~%" 
+                           (format t "~A ~A ajouté~%"
                                    (format-ok)
                                    (string-capitalize (substitute #\Space #\_ (string mat))))
                            (incf nb-saisis)))
@@ -241,9 +241,9 @@
 (defun configurer-filtres ()
   "Interface de configuration des filtres optionnels.
    Permet de définir : végétarien, saisons, types de plats."
-  
+
   (format t "~%=== CONFIGURATION DES FILTRES ===~%~%")
-  
+
   ;; Filtre végétarien
   (let ((vegetarien (configurer-filtre-vegetarien)))
     (if vegetarien
@@ -296,41 +296,51 @@
 (defun lancer-recherche-recettes ()
   "Lance la recherche de recettes avec chaînage avant.
    Affiche les recettes réalisables et explique les exclusions."
-  
+
   (format t "~%=== RECHERCHE DE RECETTES ===~%~%")
-  
+
   ;; Vérifier que la base de faits n'est pas vide
   (when (null *base-faits*)
     (format t "~A Aucun ingrédient ou matériel saisi.~%" (format-erreur))
     (format t "Veuillez d'abord saisir vos ingrédients (option 1) et votre matériel (option 2).~%")
     (pause)
     (return-from lancer-recherche-recettes))
+
   (format t "Lancement du chaînage avant...~%~%")
+
+  (setf *solutions-trouvees* nil)
+  (setf *regles-declenchees* nil)
+  ;; Lancer le chaînage avant
   (chainage-avant)
-  
-  ;; Récupérer les recettes déduites (profondeur 0)
-  (let ((recettes-trouvees 
-          (loop for fait in *base-faits*
-                for regle = (obtenir-regle (car fait))
-                when (and regle (zerop (regle-profondeur regle)))
-                collect (car fait))))
-    
+
+  ;; Récupérer les recettes déduites (faits ajoutés par les règles)
+  (let ((recettes-trouvees nil))
+
+    ;; Parcourir la base de faits pour trouver les recettes déduites
+    (dolist (solution *solutions-trouvees*)
+      (push solution recettes-trouvees))
+
     ;; Afficher les résultats
     (if recettes-trouvees
         (progn
-          (format t "~A ~D recette(s) réalisable(s) trouvée(s) !~%~%" 
-                  (format-ok) 
+          (format t "~A ~D recette(s) réalisable(s) trouvée(s) !~%~%"
+                  (format-ok)
                   (length recettes-trouvees))
-          (afficher-recettes-realisables recettes-trouvees))
+          ;(afficher-recettes-realisables (nreverse recettes-trouvees))
+          (format t "~%--- RECETTES ---~%")
+          (dolist (recette recettes-trouvees)
+            ; Affichage des recettes réalisables sans utiliser les fonctions non implémentées.
+            (format t "  ~A~%" recette))
+          )
         (progn
-          (format t "~A Aucune recette réalisable avec les ingrédients et le matériel disponibles.~%" 
+          (format t "~A Aucune recette réalisable avec les ingrédients et le matériel disponibles.~%"
                   (format-erreur))
           (format t "~%Suggestions :~%")
           (format t "  - Ajoutez plus d'ingrédients~%")
           (format t "  - Vérifiez que vous avez le matériel nécessaire~%")
           (format t "  - Modifiez vos filtres (végétarien, saisons, types)~%")))
     (format t "~%")
-    
+
     ;; Proposer d'afficher la trace
     (when (lire-oui-non "Souhaitez-vous afficher la trace du raisonnement ? (o/n) : ")
       (afficher-trace-complete))
@@ -339,24 +349,24 @@
 (defun verifier-recette-specifique ()
   "Vérifie si une recette spécifique peut être réalisée (chaînage arrière).
    Demande à l'utilisateur quelle recette vérifier."
-  
+
   (format t "~%=== VÉRIFICATION D'UNE RECETTE SPÉCIFIQUE ===~%~%")
-  
+
   (let ((recettes (lister-toutes-recettes)))
     ;; Vérifier si des recettes sont disponibles
     (when (null recettes)
       (format t "Aucune recette disponible. Chargez d'abord les recettes.~%")
       (pause)
       (return-from verifier-recette-specifique))
-    
+
     ;; Afficher la liste des recettes
     (format t "~D recette(s) disponible(s) dans le système.~%~%" (length recettes))
     (format t "Liste des recettes :~%")
     (loop for rec in recettes
           for compteur from 1
-          do (format t "  ~2D. ~A~%" compteur 
+          do (format t "  ~2D. ~A~%" compteur
                      (string-capitalize (substitute #\Space #\_ (string rec)))))
-    
+
     ;; Demander le choix
     (format t "~%")
     (let ((choix (lire-entier "Numéro de la recette à vérifier (0 pour annuler) : " 0 (length recettes))))
@@ -364,19 +374,19 @@
         (format t "~%Vérification annulée.~%")
         (pause)
         (return-from verifier-recette-specifique))
-      
+
       ;; Lancer le chaînage arrière
       (let* ((recette-choisie (nth (1- choix) recettes))
              (resultat (chainage-arriere recette-choisie)))
         (if resultat
-            (format t "~A ~A PEUT être réalisée !~%" 
+            (format t "~A ~A PEUT être réalisée !~%"
                     (format-ok)
                     (string-capitalize (substitute #\Space #\_ (string recette-choisie))))
-            (format t "~A ~A NE PEUT PAS être réalisée.~%" 
+            (format t "~A ~A NE PEUT PAS être réalisée.~%"
                     (format-erreur)
                     (string-capitalize (substitute #\Space #\_ (string recette-choisie)))))
         (format t "~%")
-        
+
         ;; Proposer d'afficher la trace
         (when (lire-oui-non "Souhaitez-vous afficher la trace du raisonnement ? (o/n) : ")
           (afficher-trace-complete))
@@ -390,12 +400,12 @@
   "Affiche la liste des recettes réalisables de manière formatée.
    Paramètres :
      - recettes : liste de symboles de recettes"
-  
+
   ;; Grouper les recettes par type
   (let ((entrees nil)
         (plats nil)
         (desserts nil))
-    
+
     (dolist (recette-nom recettes)
       (let ((regle (obtenir-regle recette-nom)))
         (when regle
@@ -410,13 +420,13 @@
                (push regle desserts))
               (t
                (push regle plats)))))))
-    
+
     ;; Afficher les entrées
     (when entrees
       (format t "~%=== ENTRÉES ===~%")
       (dolist (regle (nreverse entrees))
         (afficher-recette-resume regle)))
-    
+
     ;; Afficher les plats
     (when plats
       (format t "~%=== PLATS ===~%")
@@ -428,30 +438,30 @@
       (format t "~%=== DESSERTS ===~%")
       (dolist (regle (nreverse desserts))
         (afficher-recette-resume regle)))))
-          
+
 (defun afficher-recette-resume (regle)
   "Affiche un résumé d'une recette.
    Paramètres :
      - regle : structure regle"
-  
+
   (let* ((nom (regle-nom regle))
          (description (regle-description regle))
          (metadata (regle-metadata regle))
          (vegetarien (cdr (assoc 'vegetarien metadata)))
          (saisons (cdr (assoc 'saisons metadata))))
-    
+
     (format t "~%  • ~A" (string-capitalize (substitute #\Space #\_ (string nom))))
-    
+
     (when description
       (format t "~%    ~A" description))
-    
+
     (when vegetarien
       (format t " ~C[32m[Végétarien]~C[0m" #\Escape #\Escape))
-    
+
     (when saisons
-      (format t "~%    Saisons : ~{~A~^, ~}" 
+      (format t "~%    Saisons : ~{~A~^, ~}"
               (mapcar (lambda (s) (string-capitalize (string s))) saisons)))
-    
+
     (format t "~%")))
 
 (defun afficher-recette-detaillee (recette)
@@ -483,24 +493,24 @@
 (defun afficher-trace-complete ()
   "Affiche la trace complète du raisonnement effectué.
    Montre les règles déclenchées et les faits déduits."
-  
+
   (format t "~%=== TRACE DU RAISONNEMENT ===~%~%")
-  
+
   (unless (or *regles-declenchees* *trace-echecs*)
     (format t "Aucune trace disponible. Lancez d'abord une recherche de recettes.~%")
     (pause)
     (return-from afficher-trace-complete))
-  
+
   ;; Afficher les succès
   (when *regles-declenchees*
     (format t "Règles déclenchées (succès) :~%~%")
     (loop for (regle . fait) in (reverse *regles-declenchees*)
           for etape from 1
-          do (format t "  ~A Étape ~D : Règle ~A -> Fait ~A~%" 
+          do (format t "  ~A Étape ~D : Règle ~A -> Fait ~A~%"
                     (format-ok) etape regle
                     (string-capitalize (substitute #\Space #\_ (string fait)))))
     (format t "~%Total : ~D règle(s) déclenchée(s)~%" (length *regles-declenchees*)))
-  
+
   ;; Afficher les échecs
   (when *trace-echecs*
     (format t "Tentatives échouées :~%~%")
@@ -510,12 +520,12 @@
                    (regle (getf echec :regle))
                    (raison (getf echec :raison))
                    (conditions (getf echec :conditions-manquantes)))
-               (format t "  ~A ~D. ~:[Règle ~A pour ~A~;But ~A : ~A~]~%" 
+               (format t "  ~A ~D. ~:[Règle ~A pour ~A~;But ~A : ~A~]~%"
                       (format-erreur) num raison
                       (if raison but regle)
                       (if raison raison (string-capitalize (substitute #\Space #\_ (string but)))))
                (dolist (cond conditions)
-                 (format t "       - ~A (requis: ~A)~%" 
+                 (format t "       - ~A (requis: ~A)~%"
                         (string-capitalize (substitute #\Space #\_ (string (first cond))))
                         (second cond)))))
     (format t "~%Total : ~D échec(s)~%" (length *trace-echecs*))))
@@ -574,7 +584,7 @@
   (loop
     (format t "~A" message)
     (finish-output)
-    
+
     (let* ((input (read-line))
            (valeur (parse-integer input :junk-allowed t)))
       (cond
@@ -602,10 +612,10 @@
     (let* ((input (string-trim '(#\Space #\Tab) (read-line)))
            (reponse (string-downcase input)))
       (cond
-        ((or (string= reponse "o") (string= reponse "oui") 
+        ((or (string= reponse "o") (string= reponse "oui")
              (string= reponse "y") (string= reponse "yes"))
          (return t))
-        ((or (string= reponse "n") (string= reponse "non") 
+        ((or (string= reponse "n") (string= reponse "non")
              (string= reponse "no"))
          (return nil))
         (t
@@ -624,10 +634,10 @@
       (dolist (opt options)
         (format t "  ~D. ~A~%" compteur (string-capitalize (string opt)))
         (incf compteur)))
-    
+
     (format t "~%Entrez les numéros séparés par des espaces (Entrée pour tous) : ")
     (finish-output)
-    
+
     (let* ((input (string-trim '(#\Space #\Tab) (read-line)))
            (selections nil)
            (erreur nil))

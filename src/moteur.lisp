@@ -13,6 +13,9 @@
 (defvar *regles-declenchees* nil
   "Liste des règles déclenchées pendant l'inférence pour traçabilité.")
 
+(defparameter *solutions-trouvees* nil
+  "Liste pour stocker toutes les combinaisons de menus valides trouvées")
+
 (defvar *trace-echecs* nil
   "Liste des tentatives échouées pendant le chaînage arrière.")
 
@@ -40,7 +43,28 @@
   ;;   * Enregistrer la règle dans *regles-declenchees*
   ;;   * Continuer tant qu'il y a des règles applicables
   ;; - Retourner les nouveaux faits déduits
-  )
+
+  (let ((candidates (regles-candidates)))
+        (dolist (recette-faisable candidates)
+          (if (not (member (regle-conclusion recette-faisable) *solutions-trouvees*))
+          (push (regle-conclusion recette-faisable) *solutions-trouvees*)))
+        (if (null candidates)
+            (return-from chainage-avant))
+            (progn
+              (setf candidates (sort candidates (lambda (r1 r2)
+                      (< (regle-profondeur r1) (regle-profondeur r2)))))
+              (dolist (regle candidates)
+                (when (appliquer-regle regle)
+                  (push (regle-nom regle) *regles-declenchees*)
+                  (chainage-avant)
+                  (pop *regles-declenchees*)
+                  (desappliquer-regle regle)
+                  )
+                )
+              )
+            )
+        )
+
 
 (defun chainage-avant-profondeur ()
   "Moteur d'inférence à chaînage avant (stratégie en profondeur).
@@ -55,6 +79,7 @@
   ;; - Similaire à chainage-avant mais avec stratégie différente
   ;; - Appliquer une règle puis relancer immédiatement
   ;; - Utiliser une pile ou récursion pour la profondeur
+  (setf *regles-declenchees* nil)
   )
 
 ;;; ----------------------------------------------------------------------------
@@ -81,17 +106,17 @@
      - but : fait à prouver
      - profondeur : profondeur courante de récursion
    Retour : t si prouvé, nil sinon"
-  
+
   ;; Vérifier la profondeur maximale et si le but est déjà prouvé
   (when (or (>= profondeur *profondeur-max*) (obtenir-fait but))
     (return-from prouver-but-recursif (obtenir-fait but)))
-  
+
   ;; Chercher les règles qui concluent ce but
   (let ((regles-but (regles-pour-but but)))
     (when (and (null regles-but) (zerop profondeur))
       (push (list :but but :raison "Aucune règle ne conclut ce fait") *trace-echecs*)
       (return-from prouver-but-recursif nil))
-    
+
     ;; Essayer chaque règle
     (dolist (regle regles-but)
       (let ((conditions-manquantes nil))
@@ -100,7 +125,7 @@
           (unless (or (obtenir-fait (first condition))
                      (prouver-but-recursif (first condition) (1+ profondeur)))
             (push (list (first condition) (third condition)) conditions-manquantes)))
-        
+
         ;; Si toutes les conditions sont prouvées, appliquer la règle
         (if (null conditions-manquantes)
             (progn
@@ -109,7 +134,7 @@
               (return-from prouver-but-recursif t))
             ;; Sinon, enregistrer l'échec (seulement pour profondeur 0)
             (when (zerop profondeur)
-              (push (list :but but 
+              (push (list :but but
                          :regle (regle-nom regle)
                          :conditions-manquantes (nreverse conditions-manquantes))
                     *trace-echecs*))))))

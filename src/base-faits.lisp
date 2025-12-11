@@ -53,7 +53,9 @@
    Retour : la valeur ajoutée
    Note de migration : la signature a changé, il faut désormais fournir le type en premier argument."
   (if (obtenir-fait cle)
-      (incremente-fait cle valeur)
+      (if (eq type 'ingredients)
+          (incremente-fait cle valeur)
+          (modifier-fait cle valeur))
       (let ((categorie (assoc type *base-faits*)))
         (when categorie
           (setf (cadr categorie) (cons (cons cle valeur) (cadr categorie)))
@@ -88,7 +90,7 @@
    Paramètres :
      - cle : symbole identifiant le fait
    Retour : t si supprimé, nil si non trouvé"
-  (let ((fait (obtenir-fait cle)))
+  (let ((fait (assoc cle (cadr (assoc 'ingredients *base-faits*)))))
     (if fait
       (progn
         (dolist (type '(ingredients materiel filtres))
@@ -115,8 +117,13 @@
       (progn
         (push (list 'decremente-fait cle (cdr fait)) *historique-faits*)
         (setf (cdr fait) (- (cdr fait) quantite))
-        (cdr fait))
-      nil)))
+        (when (eq (cdr fait) 0)
+            (supprimer-fait cle))
+        (cdr fait)
+      )
+      nil
+  )
+))
 
 (defun incremente-fait (cle quantite)
   "Incrémente la valeur numérique d'un fait.
@@ -125,13 +132,18 @@
      - quantite : quantité à ajouter
    Retour : nouvelle valeur ou nil si impossible"
   (let ((fait (assoc cle (cadr (assoc 'ingredients *base-faits*)))))
-    (if (and fait (numberp (cdr fait)))
-      (progn
-        (push (list 'incremente-fait cle (cdr fait)) *historique-faits*)
-        (setf (cdr fait) (+ (cdr fait) quantite))
-        (cdr fait)
+    (if fait
+      (if (and fait (numberp (cdr fait)))
+        (progn
+          (push (list 'incremente-fait cle (cdr fait)) *historique-faits*)
+          (setf (cdr fait) (+ (cdr fait) quantite))
+          (cdr fait)
+        )
+        nil
       )
-      nil)))
+      (ajouter-fait 'ingredients cle quantite)
+    )
+))
 
 ;;; ----------------------------------------------------------------------------
 ;;; COMPARAISONS (pour conditions des règles)
