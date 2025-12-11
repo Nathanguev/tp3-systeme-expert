@@ -10,8 +10,8 @@
 ;;; ----------------------------------------------------------------------------
 
 (defvar *base-faits* '((ingredients ())
-                      (materiel ())
-                      (filtres ()))
+                       (materiel ())
+                       (filtres ()))
   "Base de faits globale contenant tous les faits courants du système.
    Structure : liste d'association de catégories, chaque catégorie contenant une liste d'association (clé . valeur)
    - Pour ingrédients : (nom-ingredient . quantite-disponible)
@@ -52,7 +52,6 @@
      - valeur : valeur associée (nombre ou booléen)
    Retour : la valeur ajoutée
    Note de migration : la signature a changé, il faut désormais fournir le type en premier argument."
-
   (if (obtenir-fait cle)
       (if (eq type 'ingredients)
           (incremente-fait cle valeur)
@@ -63,19 +62,14 @@
           (push (list 'ajouter-fait cle nil) *historique-faits*)
           valeur))))
 
-
-
 (defun obtenir-fait (cle)
   "Récupère la valeur d'un fait dans la base de faits.
    Paramètres :
      - cle : symbole identifiant le fait
    Retour : valeur du fait ou nil si non trouvé"
-
   (some (lambda (type)
           (cdr (assoc cle (cadr (assoc type *base-faits*)))))
-        '(ingredients materiel filtres))
-)
-
+        '(ingredients materiel filtres)))
 
 (defun modifier-fait (cle nouvelle-valeur)
   "Modifie la valeur d'un fait existant (utilisé par les règles 0+).
@@ -83,23 +77,19 @@
      - cle : symbole identifiant le fait
      - nouvelle-valeur : nouvelle valeur à assigner
    Retour : la nouvelle valeur ou nil si le fait n'existe pas"
-
   (let ((fait (obtenir-fait cle)))
     (if fait
       (progn
         (push (list 'modifier-fait cle (cdr fait)) *historique-faits*)
         (setf (cdr fait) nouvelle-valeur)
         nouvelle-valeur)
-    nil)
-  )
-)
+    nil)))
 
 (defun supprimer-fait (cle)
   "Supprime un fait de la base de faits.
    Paramètres :
      - cle : symbole identifiant le fait
    Retour : t si supprimé, nil si non trouvé"
-
   (let ((fait (obtenir-fait cle)))
     (if fait
       (progn
@@ -110,10 +100,7 @@
                     (remove fait (cadr categorie))))))
         (push (list 'supprimer-fait cle (cdr fait)) *historique-faits*)
         t)
-      nil
-    )
-  )
-)
+      nil)))
 
 ;;; ----------------------------------------------------------------------------
 ;;; OPÉRATIONS NUMÉRIQUES (pour ordre 0+)
@@ -125,17 +112,13 @@
      - cle : symbole identifiant le fait
      - quantite : quantité à soustraire
    Retour : nouvelle valeur ou nil si impossible"
-
   (let ((fait (assoc cle (cadr (assoc 'ingredients *base-faits*)))))
     (if (and fait (numberp (cdr fait)) (>= (cdr fait) quantite))
       (progn
         (push (list 'decremente-fait cle (cdr fait)) *historique-faits*)
         (setf (cdr fait) (- (cdr fait) quantite))
-        (cdr fait)
-      )
-      nil
-  )
-))
+        (cdr fait))
+      nil)))
 
 (defun incremente-fait (cle quantite)
   "Incrémente la valeur numérique d'un fait.
@@ -143,7 +126,6 @@
      - cle : symbole identifiant le fait
      - quantite : quantité à ajouter
    Retour : nouvelle valeur ou nil si impossible"
-
   (let ((fait (assoc cle (cadr (assoc 'ingredients *base-faits*)))))
     (if (and fait (numberp (cdr fait)))
       (progn
@@ -151,9 +133,7 @@
         (setf (cdr fait) (+ (cdr fait) quantite))
         (cdr fait)
       )
-      nil
-  )
-))
+      nil)))
 
 ;;; ----------------------------------------------------------------------------
 ;;; COMPARAISONS (pour conditions des règles)
@@ -166,16 +146,12 @@
      - operateur : '>=, '<=, '=, '>, '<
      - valeur : valeur de comparaison
    Retour : t si la comparaison est vraie, nil sinon"
-
   (let ((fait (obtenir-fait cle)))
     (if fait
       (cond
         ((and (numberp fait) (numberp valeur)) (funcall operateur fait valeur))
-        ((eq operateur '=) (equal fait valeur))
-      )
-    )
-  )
-)
+        ((eq operateur '=) (equal fait valeur))))))
+
 ;;; ----------------------------------------------------------------------------
 ;;; AFFICHAGE ET TRAÇABILITÉ
 ;;; ----------------------------------------------------------------------------
@@ -200,14 +176,12 @@
 
 (defun afficher-historique ()
   "Affiche l'historique des modifications de la base de faits."
-
   (format t "~%Historique des modifications :~%")
   (dolist (modification *historique-faits*)
     (format t "Action : ~A, Fait : ~A, Ancienne valeur : ~A~%"
             (first modification) (second modification) (third modification)))
   (when (null *historique-faits*)
-    (format t "Aucune modification enregistrée.~%")
-  ))
+    (format t "Aucune modification enregistrée.~%")))
 
 ;;; ----------------------------------------------------------------------------
 ;;; SAUVEGARDE ET RESTAURATION
@@ -216,20 +190,16 @@
 (defun sauvegarder-etat ()
   "Sauvegarde l'état actuel de la base de faits.
    Retour : copie de la base de faits"
-
   (let ((nb-sauvegarde (+ (length *sauvegarde-faits*) 1)))
     (push (list nb-sauvegarde (copy-tree *base-faits*)) *sauvegarde-faits*)
     (push (list nb-sauvegarde (copy-tree *historique-faits*)) *sauvegarde-historique*)
     (format t "État de la base de faits sauvegardé avec l'index ~A.~%" nb-sauvegarde)
-    (copy-tree *base-faits*)
-  )
-  )
+    (copy-tree *base-faits*)))
 
 (defun restaurer-etat (index-etat)
   "Restaure la base de faits à un état sauvegardé.
    Paramètres :
      - index-etat : index numérique de l'état sauvegardé à restaurer"
-
   (let ((etat-sauvegarde (assoc index-etat *sauvegarde-faits*))
         (etat-historique (assoc index-etat *sauvegarde-historique*)))
     (if (and etat-sauvegarde etat-historique)
@@ -238,6 +208,4 @@
         (setf *historique-faits* (copy-tree (cadr etat-historique)))
         (format t "Base de faits restaurée à l'état ~A.~%" index-etat)
         (copy-tree (cadr etat-sauvegarde)))
-    nil)
-))
-
+    nil)))
