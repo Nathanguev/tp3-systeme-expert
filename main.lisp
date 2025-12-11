@@ -35,48 +35,6 @@
   ;; Chargement des règles depuis les données
   (charger-recettes)
   ;; Lancement de l'interface utilisateur
-  (ajouter-fait 'filtres 'hiver t)      ; Les cannellonis se mangent en hiver
-(ajouter-fait 'filtres 'plat t)      ; On cherche un plat principal
-
-;; 2. AJOUT DU MATÉRIEL (Tout le matériel nécessaire)
-;; ----------------------------------------------------------------------------
-;; Pour la pâte à lasagne
-(ajouter-fait 'materiel 'bol t)
-(ajouter-fait 'materiel 'rouleau t)
-;; Pour la béchamel et bolognaise
-(ajouter-fait 'materiel 'casserole t)
-(ajouter-fait 'materiel 'fouet t)
-;; Pour la farce et concassé
-(ajouter-fait 'materiel 'poele t)
-(ajouter-fait 'materiel 'spatule t)
-;; Pour la cuisson finale
-(ajouter-fait 'materiel 'four t)
-
-;; 3. AJOUT DES INGRÉDIENTS BRUTS (Quantités suffisantes pour toutes les sous-recettes)
-;; ----------------------------------------------------------------------------
-
-;; -- Pour la Pâte à Lasagne (Besoin: Farine 175, Oeuf 6) --
-(ajouter-fait 'ingredients 'farine 500) ; Large stock de farine
-(ajouter-fait 'ingredients 'oeuf 12)     ; Large stock d'oeufs
-
-;; -- Pour la Béchamel (Besoin: Beurre 30, Farine 30, Lait 45) --
-(ajouter-fait 'ingredients 'beurre 200)  ; Assez pour béchamel + cuisson
-(ajouter-fait 'ingredients 'lait 100)
-
-;; -- Pour la Farce Viande (Besoin: Oignon 1, Ail 2, Huile 2, Boeuf 600) --
-(ajouter-fait 'ingredients 'boeuf 1000)
-
-;; -- Pour le Concassé (Besoin: Tomate 5, Oignon 1, Ail 3, Huile 2) --
-(ajouter-fait 'ingredients 'tomate 10)
-
-;; -- Ingrédients communs (Aromates / Huile) --
-;; Note : Il faut assez pour la Farce ET le Concassé cumulés
-(ajouter-fait 'ingredients 'oignon 5)    ; Besoin total : 1 + 1 = 2
-(ajouter-fait 'ingredients 'ail 10)      ; Besoin total : 2 + 3 = 5
-(ajouter-fait 'ingredients 'huile 10)    ; Besoin total : 2 + 2 = 4
-
-;; -- Pour la finition (Cannellonis) --
-(ajouter-fait 'ingredients 'parmesan 100)
   (interface-principale)
 )
 
