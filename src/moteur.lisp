@@ -27,12 +27,11 @@
 ;;; ----------------------------------------------------------------------------
 
 (defun chainage-avant ()
-  "Moteur d'inférence à chaînage avant (stratégie en largeur).
+"Moteur d'inférence à chaînage avant (stratégie en PROFONDEUR).
    Principe :
-     1. Partir des faits initiaux
-     2. Trouver toutes les règles applicables
-     3. Appliquer les règles et ajouter les conclusions
-     4. Répéter jusqu'à saturation (plus de règles applicables)
+     1. Trouver les règles applicables.
+     2. En choisir une, l'appliquer (descendre).
+     3. Revenir en arrière (backtrack) pour essayer les autres.
    Retour : liste des faits déduits (conclusions)"
   ;; TODO: Implémenter le chaînage avant
   ;; - Initialiser *regles-declenchees*
@@ -45,25 +44,24 @@
   ;; - Retourner les nouveaux faits déduits
 
   (let ((candidates (regles-candidates)))
-        (dolist (recette-faisable candidates)
-          (if (not (member (regle-conclusion recette-faisable) *solutions-trouvees*))
-          (push (regle-conclusion recette-faisable) *solutions-trouvees*)))
-        (if (null candidates)
-            (return-from chainage-avant))
-            (progn
-              (setf candidates (sort candidates (lambda (r1 r2)
-                      (< (regle-profondeur r1) (regle-profondeur r2)))))
-              (dolist (regle candidates)
-                (when (appliquer-regle regle)
-                  (push (regle-nom regle) *regles-declenchees*)
-                  (chainage-avant)
-                  (pop *regles-declenchees*)
-                  (desappliquer-regle regle)
-                  )
-                )
-              )
-            )
-        )
+    (setf candidates (remove-if (lambda (r) 
+      (member (regle-conclusion r) *regles-declenchees*))candidates))
+
+    (when (null candidates)
+      (return-from chainage-avant))
+
+    (setf candidates (sort candidates (lambda (r1 r2)
+      (< (regle-profondeur r1) (regle-profondeur r2)))))
+
+    (dolist (regle candidates)
+      (appliquer-regle regle)
+      (push (regle-conclusion regle) *regles-declenchees*)
+      (pushnew (regle-conclusion regle) *solutions-trouvees*)
+      (chainage-avant)
+      (pop *regles-declenchees*)
+      (desappliquer-regle regle)
+    )
+  ))
 
 
 (defun chainage-avant-profondeur ()
