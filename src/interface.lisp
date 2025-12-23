@@ -312,6 +312,7 @@
   (setf *regles-declenchees* nil)
   ;; Lancer le chaînage avant
   (chainage-avant)
+  
 
   ;; Récupérer les recettes déduites (faits ajoutés par les règles)
   (let ((recettes-trouvees nil))
