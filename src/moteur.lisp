@@ -13,8 +13,11 @@
 (defvar *regles-declenchees* nil
   "Liste des règles déclenchées pendant l'inférence pour traçabilité.")
 
-(defparameter *solutions-trouvees* nil
+(defvar *solutions-trouvees* nil
   "Liste pour stocker toutes les combinaisons de menus valides trouvées")
+
+(defvar *trace-inference-avant* nil
+  "Stocke la copie de *regles-declenchees* au moment où une solution est trouvée.")
 
 (defvar *trace-echecs* nil
   "Liste des tentatives échouées pendant le chaînage arrière.")
@@ -45,7 +48,7 @@
 
   (let ((candidates (regles-candidates)))
     (setf candidates (remove-if (lambda (r) 
-      (member (regle-conclusion r) *regles-declenchees*))candidates))
+      (member (regle-nom r) *regles-declenchees*)) candidates))
 
     (when (null candidates)
       (return-from chainage-avant))
@@ -55,14 +58,13 @@
 
     (dolist (regle candidates)
       (appliquer-regle regle)
-      (push (regle-conclusion regle) *regles-declenchees*)
-      (pushnew (regle-conclusion regle) *solutions-trouvees*)
+      (push (regle-nom regle) *regles-declenchees*)
+      (pushnew regle *solutions-trouvees*)
       (chainage-avant)
       (pop *regles-declenchees*)
       (desappliquer-regle regle)
     )
   ))
-
 
 (defun chainage-avant-profondeur ()
   "Moteur d'inférence à chaînage avant (stratégie en profondeur).
@@ -211,7 +213,25 @@
   ;; TODO: Implémenter la génération de trace
   ;; - Retourner *regles-declenchees* avec contexte
   ;; - Inclure faits initiaux, règles, faits déduits
+  (setf *trace-inference-avant* nil)
+  (dolist (solution *solutions-trouvees*)
+    (let ((nom (regle-nom solution))
+          (conclusion (regle-conclusion solution))
+          (conditions (regle-conditions solution)))
+      (push (list nom conditions conclusion) *trace-inference-avant*)      
+    )
   )
+  *trace-inference-avant*)
+
+(defun format-liste-ingredients (conditions)
+  (let (conditions_lisible '())
+    (dolist (condition conditions)
+      (unless (eq (third condition) 'T)
+        (push (list (first condition) (third condition)) conditions_lisible)
+      )
+    )
+  conditions_lisible)
+)
 
 (defun afficher-trace-inference ()
   "Affiche la trace du raisonnement de manière formatée."
@@ -219,6 +239,32 @@
   ;; - Format lisible pour l'utilisateur
   ;; - Numérotation des étapes
   ;; - Indication des règles et conclusions
+  (let ((trace (obtenir-trace-inference))
+        (etape 1))
+    
+    (format t "~%=== TRACE DU RAISONNEMENT ===~%~%")
+    
+    (if (null trace)
+        (format t "  Aucune trace disponible. ~%")
+        
+        (dolist (ligne trace)
+          ;; Déstructuration de la liste (Nom Conditions Conclusion)
+          (let ((nom (first ligne))
+                (conditions (second ligne))
+                (conclusion (third ligne)))
+            
+            ;; LIGNE 1 : Le résumé de l'action
+            (format t "  ~A Étape ~D : Règle ~A -> Fait ~A~%" 
+                    (format-ok) etape nom conclusion)
+            
+            ;; LIGNE 2 (Optionnelle) : Le détail des ingrédients utilisés
+            (format t "       Used : [ ~A ]~%~%" 
+                    (format-liste-ingredients conditions))
+            
+            (incf etape))))
+    
+    (format t "=== FIN DE LA TRACE ===~%"))
+
   )
 
 (defun expliquer-conclusion (fait)
@@ -249,6 +295,8 @@
 (defun reinitialiser-moteur ()
   "Réinitialise le moteur d'inférence (nettoie la traçabilité)."
   (setf *regles-declenchees* nil)
+  (setf *solutions-trouvees* nil)
+  (setf *trace-inference-avant* nil)
   (setf *trace-echecs* nil))
 
 (defun statistiques-inference ()

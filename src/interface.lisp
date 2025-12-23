@@ -319,7 +319,7 @@
 
     ;; Parcourir la base de faits pour trouver les recettes déduites
     (dolist (solution *solutions-trouvees*)
-      (push solution recettes-trouvees))
+      (push (regle-conclusion solution) recettes-trouvees))
 
     ;; Afficher les résultats
     (if recettes-trouvees
@@ -344,7 +344,7 @@
 
     ;; Proposer d'afficher la trace
     (when (lire-oui-non "Souhaitez-vous afficher la trace du raisonnement ? (o/n) : ")
-      (afficher-trace-complete))
+      (afficher-trace-inference))
     (pause)))
 
 (defun verifier-recette-specifique ()

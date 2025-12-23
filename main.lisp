@@ -32,7 +32,38 @@
   (initialiser-base-faits)
   ;; Chargement des règles depuis les données
   (charger-recettes)
-  ;; Lancement de l'interface utilisateur
+(ajouter-fait 'ingredients 'farine 350)
+  (ajouter-fait 'ingredients 'oeuf 13)
+  (ajouter-fait 'ingredients 'huile 15)
+  
+  ;; 2. Pour la Béchamel
+  (ajouter-fait 'ingredients 'beurre 30)
+  (ajouter-fait 'ingredients 'farine 30) ;; Attention: cumul possible selon ton implémentation
+  (ajouter-fait 'ingredients 'lait 300)
+
+  ;; 3. Pour la Sauce Bolognaise (via Concasse + Farce)
+  ;; -> Concasse de tomates
+  (ajouter-fait 'ingredients 'tomate 5)
+  (ajouter-fait 'ingredients 'oignon 1)
+  (ajouter-fait 'ingredients 'ail 3)
+  (ajouter-fait 'ingredients 'huile 2)
+  ;; -> Farce viande
+  (ajouter-fait 'ingredients 'oignon 1) ;; 2ème oignon
+  (ajouter-fait 'ingredients 'ail 2)    ;; +2 ails
+  (ajouter-fait 'ingredients 'huile 30) ;; +30 huile
+  (ajouter-fait 'ingredients 'boeuf 600)
+  
+  ;; 4. Pour le montage final Lasagnes
+  (ajouter-fait 'ingredients 'gruyere 100)
+  
+  ;; Matériel total nécessaire
+  (ajouter-fait 'materiel 'four t)
+  (ajouter-fait 'materiel 'bol t)
+  (ajouter-fait 'materiel 'rouleau t)
+  (ajouter-fait 'materiel 'casserole t)
+  (ajouter-fait 'materiel 'fouet t)
+  (ajouter-fait 'materiel 'poele t)
+  (ajouter-fait 'materiel 'spatule t)
   (interface-principale))
 
 
