@@ -35,12 +35,9 @@
   ;; Lancement de l'interface utilisateur
   (interface-principale))
 
-
-
 ;;; ----------------------------------------------------------------------------
 ;;; LANCEMENT AUTOMATIQUE
 ;;; ----------------------------------------------------------------------------
 
 ;; Lancer le système expert au chargement du fichier
 (demarrer-systeme-expert)
-

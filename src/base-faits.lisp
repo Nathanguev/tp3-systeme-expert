@@ -119,11 +119,8 @@
         (setf (cdr fait) (- (cdr fait) quantite))
         (when (eq (cdr fait) 0)
             (supprimer-fait cle))
-        (cdr fait)
-      )
-      nil
-  )
-))
+        (cdr fait))
+      nil)))
 
 (defun incremente-fait (cle quantite)
   "Incrémente la valeur numérique d'un fait.
@@ -137,13 +134,9 @@
         (progn
           (push (list 'incremente-fait cle (cdr fait)) *historique-faits*)
           (setf (cdr fait) (+ (cdr fait) quantite))
-          (cdr fait)
-        )
-        nil
-      )
-      (ajouter-fait 'ingredients cle quantite)
-    )
-))
+          (cdr fait))
+        nil)
+      (ajouter-fait 'ingredients cle quantite))))
 
 ;;; ----------------------------------------------------------------------------
 ;;; COMPARAISONS (pour conditions des règles)

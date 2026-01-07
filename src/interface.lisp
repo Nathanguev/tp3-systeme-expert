@@ -313,7 +313,6 @@
   ;; Lancer le chaînage avant
   (chainage-avant)
   
-
   ;; Récupérer les recettes déduites (faits ajoutés par les règles)
   (let ((recettes-trouvees nil))
 
@@ -465,28 +464,6 @@
 
     (format t "~%")))
 
-(defun afficher-recette-detaillee (recette)
-  "Affiche les détails d'une recette.
-   Paramètres :
-     - recette : symbole de la recette"
-  ;; TODO: Implémenter l'affichage détaillé
-  ;; - Récupérer la règle correspondante
-  ;; - Afficher ingrédients requis avec quantités
-  ;; - Afficher matériel nécessaire
-  ;; - Afficher propriétés (saisons, type, végétarien)
-  )
-
-(defun expliquer-exclusion (recette)
-  "Explique pourquoi une recette n'est pas réalisable.
-   Paramètres :
-     - recette : symbole de la recette"
-  ;; TODO: Implémenter l'explication d'exclusion
-  ;; - Identifier ingrédients manquants ou insuffisants
-  ;; - Identifier matériel manquant
-  ;; - Identifier filtres non respectés
-  ;; - Afficher de manière claire et constructive
-  )
-
 ;;; ----------------------------------------------------------------------------
 ;;; VISUALISATION DU RAISONNEMENT
 ;;; ----------------------------------------------------------------------------
@@ -530,38 +507,6 @@
                         (string-capitalize (substitute #\Space #\_ (string (first cond))))
                         (second cond)))))
     (format t "~%Total : ~D échec(s)~%" (length *trace-echecs*))))
-
-(defun visualiser-arbre-raisonnement (recette)
-  "Visualise l'arbre de raisonnement pour une recette.
-   Paramètres :
-     - recette : symbole de la recette"
-  ;; TODO: Implémenter la visualisation
-  ;; - Générer l'arbre avec generer-arbre-raisonnement
-  ;; - Afficher de manière hiérarchique (ASCII art)
-  ;; - Montrer les dépendances entre règles
-  )
-
-;;; ----------------------------------------------------------------------------
-;;; STATISTIQUES ET INFORMATIONS
-;;; ----------------------------------------------------------------------------
-
-(defun afficher-statistiques ()
-  "Affiche les statistiques du système et de l'inférence."
-  ;; TODO: Implémenter l'affichage des statistiques
-  ;; - Nombre de recettes en base
-  ;; - Nombre d'ingrédients référencés
-  ;; - Nombre de règles déclenchées
-  ;; - Nombre de recettes trouvées
-  ;; - Temps d'exécution (optionnel)
-  )
-
-(defun afficher-etat-systeme ()
-  "Affiche l'état complet du système (faits, règles, configuration)."
-  ;; TODO: Implémenter l'affichage de l'état
-  ;; - Base de faits courante
-  ;; - Filtres actifs
-  ;; - Nombre de règles chargées
-  )
 
 ;;; ----------------------------------------------------------------------------
 ;;; UTILITAIRES D'INTERFACE
@@ -667,15 +612,3 @@
   "Met en pause et attend que l'utilisateur appuie sur Entrée."
   (format t "~%Appuyez sur Entrée pour continuer...")
   (read-line))
-
-;;; ----------------------------------------------------------------------------
-;;; AIDE ET DOCUMENTATION
-;;; ----------------------------------------------------------------------------
-
-(defun afficher-aide ()
-  "Affiche l'aide générale du système expert."
-  ;; TODO: Implémenter l'affichage d'aide
-  ;; - Expliquer le fonctionnement général
-  ;; - Guider l'utilisateur pas à pas
-  ;; - Donner des exemples d'utilisation
-  )

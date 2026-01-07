@@ -79,18 +79,10 @@
   (afficher-statistiques))
 
 ;;; ----------------------------------------------------------------------------
-;;; AUTRES SCÉNARIOS À IMPLÉMENTER
+;;; AUTRES SCÉNARIOS
 ;;; ----------------------------------------------------------------------------
 
 (defun executer-scenario-2 ()
-  "Scénario 2 : Utilisateur végétarien avec peu d'ingrédients."
-  ;; TODO: Implémenter un deuxième scénario
-  ;; - Ingrédients limités
-  ;; - Filtre végétarien actif
-  ;; - Tester différentes saisons
-  )
-
-(defun executer-scenario-3 ()
   "Scénario 3 : Test du chaînage arrière pour une recette spécifique."
   
   (format t "~%")
@@ -138,13 +130,10 @@
   "Execute tous les scénarios de test."
   (executer-scenario-1)
   (format t "~%~%")
-  (executer-scenario-2)
-  (format t "~%~%")
-  (executer-scenario-3))
+  (executer-scenario-2))
 
 ;;; ----------------------------------------------------------------------------
 ;;; LANCEMENT
 ;;; ----------------------------------------------------------------------------
 
-;; Exécuter le scénario 1 au chargement
-(executer-scenario-3)
+(executer-scenario-2)
