@@ -16,7 +16,6 @@
      - nom : identifiant unique de la règle
      - conditions : liste de conditions à vérifier
      - conclusion : fait à ajouter/modifier si conditions vraies
-     - priorite : niveau de priorité (optionnel)
      - profondeur : niveau de composition (0 = recette finale)
      - metadata : informations supplémentaires (saisons, type, etc.)")
 
@@ -26,10 +25,9 @@
   description      ; Description textuelle de la règle
   conditions       ; Liste de conditions (triplets: cle operateur valeur)
   conclusion       ; Conclusion de la règle (symbole du fait déduit)
-  actions          ; Actions à effectuer (ex: décrémenter ingrédients)
-  priorite         ; Priorité d'exécution (optionnel)
-  profondeur       ; Profondeur de composition (0+ = final, 1+ = intermédiaire)
-  metadata)        ; Métadonnées (saisons, type, végétarien, etc.)
+  actions          ; Actions à effectuer (decremente-fait, incremente-fait)
+  profondeur       ; Profondeur de composition
+  metadata)        ; Métadonnées (saisons, type de plat, végétarien)
 
 ;;; ----------------------------------------------------------------------------
 ;;; INITIALISATION
@@ -43,7 +41,7 @@
 ;;; GESTION DES RÈGLES
 ;;; ----------------------------------------------------------------------------
 
-(defun ajouter-regle (nom description conditions conclusion &key actions (priorite 0) (profondeur 0) metadata)
+(defun ajouter-regle (nom description conditions conclusion &key actions (profondeur 0) metadata)
   "Ajoute une règle à la base de règles.
    Paramètres :
      - nom : symbole identifiant unique
@@ -51,32 +49,45 @@
      - conditions : liste de conditions
      - conclusion : symbole du fait déduit
      - actions : actions à effectuer (optionnel)
-     - priorite : niveau de priorité (défaut: 0)
      - profondeur : niveau de composition (défaut: 0)
      - metadata : liste de propriétés supplémentaires
    Retour : la règle créée"
-  ;; TODO: Implémenter l'ajout de règle
-  ;; - Créer une structure REGLE
-  ;; - Vérifier l'unicité du nom
-  ;; - Ajouter à *base-regles*
-  )
+
+  ;; Vérifier si une règle avec ce nom existe déjà
+  (let ((regle-existante (obtenir-regle nom)))
+    (when regle-existante
+      (warn "La règle ~A existe déjà et sera remplacée." nom)
+      (supprimer-regle nom)))
+
+  ;; Créer la nouvelle règle
+  (let ((nouvelle-regle (make-regle
+                          :nom nom
+                          :description description
+                          :conditions conditions
+                          :conclusion conclusion
+                          :actions actions
+                          :profondeur profondeur
+                          :metadata metadata)))
+
+    ;; Ajouter à la base de règles
+    (push nouvelle-regle *base-regles*)
+    nouvelle-regle))
 
 (defun obtenir-regle (nom)
   "Récupère une règle par son nom.
    Paramètres :
      - nom : symbole identifiant la règle
    Retour : structure REGLE ou nil"
-  ;; TODO: Implémenter la récupération
-  ;; - Chercher dans *base-regles*
-  )
+  (find nom *base-regles* :key #'regle-nom :test #'eq))
 
 (defun supprimer-regle (nom)
   "Supprime une règle de la base de règles.
    Paramètres :
      - nom : symbole identifiant la règle
    Retour : t si supprimée, nil sinon"
-  ;; TODO: Implémenter la suppression
-  )
+  (let ((ancienne-taille (length *base-regles*)))
+    (setf *base-regles* (remove nom *base-regles* :key #'regle-nom :test #'eq))
+    (/= ancienne-taille (length *base-regles*))))
 
 ;;; ----------------------------------------------------------------------------
 ;;; ÉVALUATION DES CONDITIONS
@@ -87,22 +98,20 @@
    Paramètres :
      - condition : triplet (cle operateur valeur)
    Retour : t si la condition est vraie, nil sinon"
-  ;; TODO: Implémenter l'évaluation d'une condition
-  ;; - Extraire cle, operateur, valeur
-  ;; - Utiliser comparer-fait de base-faits.lisp
-  ;; - Gérer les cas spéciaux (OU, ET, NOT)
-  )
+  (let ((cle (first condition))
+        (operateur (second condition))
+        (valeur (third condition)))
+    (comparer-fait cle operateur valeur)))
 
 (defun evaluer-conditions (conditions)
   "Évalue une liste de conditions (conjonction ET).
    Paramètres :
      - conditions : liste de conditions
    Retour : t si toutes les conditions sont vraies, nil sinon"
-  ;; TODO: Implémenter l'évaluation multiple
-  ;; - Parcourir la liste des conditions
-  ;; - Retourner nil dès qu'une condition est fausse
-  ;; - Retourner t si toutes sont vraies
-  )
+  (dolist (condition conditions)
+    (unless (evaluer-condition condition)
+      (return-from evaluer-conditions nil)))
+  t)
 
 ;;; ----------------------------------------------------------------------------
 ;;; SÉLECTION DES RÈGLES
@@ -111,38 +120,22 @@
 (defun regles-candidates ()
   "Retourne la liste des règles dont les conditions sont satisfaites.
    Retour : liste de structures REGLE"
-  ;; TODO: Implémenter la sélection
-  ;; - Parcourir *base-regles*
-  ;; - Évaluer les conditions de chaque règle
-  ;; - Retourner celles dont conditions sont vraies
-  )
+  (let ((candidates '()))
+    (dolist (regle *base-regles*)
+      (when (evaluer-conditions (regle-conditions regle))
+        (push regle candidates)))
+    candidates))
 
 (defun regles-pour-but (but)
   "Retourne les règles permettant de déduire un but donné.
    Paramètres :
      - but : symbole du fait à déduire
    Retour : liste de structures REGLE"
-  ;; TODO: Implémenter la sélection par but
-  ;; - Filtrer *base-regles* sur le champ conclusion
-  )
-
-(defun trier-regles-par-priorite (regles)
-  "Trie une liste de règles par priorité décroissante.
-   Paramètres :
-     - regles : liste de structures REGLE
-   Retour : liste triée"
-  ;; TODO: Implémenter le tri
-  ;; - Utiliser sort avec accesseur regle-priorite
-  )
-
-(defun trier-regles-par-profondeur (regles)
-  "Trie une liste de règles par profondeur croissante.
-   Paramètres :
-     - regles : liste de structures REGLE
-   Retour : liste triée"
-  ;; TODO: Implémenter le tri
-  ;; - Profondeur 1+ avant profondeur 0 (compositions avant finales)
-  )
+  (let ((resultat '()))
+    (dolist (regle *base-regles*)
+      (when (eq (regle-conclusion regle) but)
+        (push regle resultat)))
+    resultat))
 
 ;;; ----------------------------------------------------------------------------
 ;;; APPLICATION DES RÈGLES
@@ -153,44 +146,31 @@
    Paramètres :
      - regle : structure REGLE à appliquer
    Retour : t si appliquée avec succès, nil sinon"
-  ;; TODO: Implémenter l'application
-  ;; - Vérifier que les conditions sont toujours vraies
-  ;; - Exécuter les actions (décrémenter ingrédients)
-  ;; - Ajouter la conclusion à la base de faits
-  ;; - Enregistrer la règle déclenchée pour traçabilité
-  )
+  (let ((conditions (regle-conditions regle))
+        (conclusion (regle-conclusion regle))
+        (actions (regle-actions regle)))
+    (when (evaluer-conditions conditions)
+      (dolist (action actions)
+        (apply (car action) (cdr action)))
+        (ajouter-fait 'ingredients conclusion 1)
+      t)))
 
-(defun peut-appliquer-regle-p (regle)
-  "Vérifie si une règle peut être appliquée (conditions satisfaites).
+(defun desappliquer-regle (regle)
+  "Désapplique une règle : exécute les actions et retire la conclusion.
    Paramètres :
-     - regle : structure REGLE
-   Retour : t si applicable, nil sinon"
-  ;; TODO: Implémenter la vérification
-  ;; - Évaluer les conditions
-  ;; - Vérifier que la conclusion n'est pas déjà dans la base de faits
-  )
+     - regle : structure REGLE à désappliquer
+   Retour : t si désappliquée avec succès, nil sinon"
+  (let ((conditions (regle-conditions regle))
+        (conclusion (regle-conclusion regle))
+        (actions (regle-actions regle)))
+    (when (> (cdr (assoc conclusion (cadr (assoc 'ingredients *base-faits*)))) 0)
 
-;;; ----------------------------------------------------------------------------
-;;; AFFICHAGE ET TRAÇABILITÉ
-;;; ----------------------------------------------------------------------------
-
-(defun afficher-regle (regle)
-  "Affiche une règle de manière formatée.
-   Paramètres :
-     - regle : structure REGLE à afficher"
-  ;; TODO: Implémenter l'affichage
-  ;; - Format : SI <conditions> ALORS <conclusion>
-  ;; - Inclure les métadonnées pertinentes
-  )
-
-(defun afficher-base-regles (&optional (filtrer nil))
-  "Affiche toutes les règles de la base.
-   Paramètres :
-     - filtrer : optionnel, critère de filtrage"
-  ;; TODO: Implémenter l'affichage complet
-  ;; - Grouper par profondeur ou type
-  ;; - Utiliser afficher-regle pour chaque règle
-  )
+      (dolist (action actions)
+        (if (eq (car action) 'decremente-fait)
+            (apply 'incremente-fait (cdr action))
+            (apply 'decremente-fait (cdr action))))
+      (decremente-fait conclusion 1)
+      t)))
 
 ;;; ----------------------------------------------------------------------------
 ;;; MÉTADONNÉES ET FILTRAGE
@@ -201,18 +181,24 @@
    Paramètres :
      - regle : structure REGLE
    Retour : t si les filtres sont respectés, nil sinon"
-  ;; TODO: Implémenter la vérification des filtres
-  ;; - Vérifier recette_vegetarienne si applicable
-  ;; - Vérifier les saisons actives
-  ;; - Vérifier les types de plats demandés
-  )
+  (let ((metadata (regle-metadata regle)))
+    (dolist (filtre metadata)
+      (cond
 
-(defun extraire-metadata (regle cle)
-  "Extrait une métadonnée d'une règle.
-   Paramètres :
-     - regle : structure REGLE
-     - cle : symbole de la métadonnée recherchée
-   Retour : valeur de la métadonnée ou nil"
-  ;; TODO: Implémenter l'extraction
-  ;; - Chercher dans le champ metadata de la règle
-  )
+  ((or (eq filtre ':saisons) (eq filtre ':type) (eq filtre t))
+   t)
+
+  ((eq filtre ':vegetarien)
+   (unless (obtenir-fait 'vegetarien)
+     (return-from regle-respecte-filtres-p nil))
+   t)
+
+  ((listp filtre)
+   (dolist (sous-filtre filtre)
+     (unless (obtenir-fait sous-filtre)
+       (return-from regle-respecte-filtres-p nil)))
+   t)
+
+  (t (unless (obtenir-fait filtre)
+     (return-from regle-respecte-filtres-p nil)))))
+   t))

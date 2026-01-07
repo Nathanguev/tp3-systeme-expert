@@ -12,18 +12,18 @@
 (defun charger-recettes ()
   "Charge toutes les recettes dans la base de règles.
    Crée les règles pour les compositions intermédiaires et les recettes finales."
-  
+
   (format t "Chargement des recettes...~%")
-  
+
   ;; Initialiser la base de règles
   (initialiser-base-regles)
-  
+
   ;; Charger les compositions intermédiaires (profondeur 1+)
   (charger-compositions-intermediaires)
-  
+
   ;; Charger les recettes finales (profondeur 0)
   (charger-recettes-finales)
-  
+
   (format t "~D règles chargées avec succès.~%" (length *base-regles*)))
 
 ;;; ----------------------------------------------------------------------------
@@ -31,138 +31,138 @@
 ;;; ----------------------------------------------------------------------------
 
 (defun charger-compositions-intermediaires ()
-  "Charge les compositions intermédiaires (pâtes, sauces, etc.)."
-  
-  ;; TODO: Implémenter le chargement des compositions
-  ;; Pour chaque composition, créer une règle avec ajouter-regle
-  
-  ;; Exemple de structure (à adapter) :
-  ;; Pâte brisée
-  ;; (ajouter-regle 
-  ;;   'R15
-  ;;   "Pâte brisée"
-  ;;   '((farine >= 200) (oeuf >= 1) (eau >= 4) (beurre >= 100) 
-  ;;     (bol = t) (rouleau = t))
-  ;;   'pate_brisee
-  ;;   :actions '((decremente farine 200) (decremente oeuf 1) 
-  ;;              (decremente eau 4) (decremente beurre 100))
-  ;;   :profondeur 1
-  ;;   :metadata '(:vegetarien t))
-  
-  ;; Pâte à crêpe
-  ;; (ajouter-regle ...)
-  
-  ;; Pâte à lasagne
-  ;; (ajouter-regle ...)
-  
-  ;; Béchamel
-  ;; (ajouter-regle ...)
-  
-  ;; Farce de viande
-  ;; (ajouter-regle ...)
-  
-  ;; Concassé de tomates
-  ;; (ajouter-regle ...)
-  
-  ;; Sauce bolognaise
-  ;; (ajouter-regle ...)
-  )
+  "Charge les compositions intermédiaires (pâtes, sauces, etc.).
+   Parse les données depuis *donnees-compositions* et *donnees-compositions-avancees*."
+
+  (let ((compteur (+ (length *donnees-recettes*) 1)) ; Commence après les recettes finales
+        (nb-compositions 0))
+
+    ;; Charger les compositions simples
+    (dolist (composition *donnees-compositions*)
+      (let* ((nom (first composition))
+             (ingredients (second composition))
+             (materiel (third composition))
+             (vegetarien (sixth composition))
+             (conditions nil)
+             (actions nil))
+
+        ;; Convertir les ingrédients en conditions et actions
+        (dolist (ing ingredients)
+          (push (list (first ing) '>= (second ing)) conditions)
+          (push (list 'decremente-fait (first ing) (second ing)) actions))
+
+        ;; Ajouter le matériel en conditions
+        (dolist (mat materiel)
+          (push (list mat '= t) conditions))
+
+        ;; Créer la règle
+        (ajouter-regle
+          (intern (format nil "R~D" compteur))
+          (string-capitalize (substitute #\Space #\_ (string nom)))
+          (nreverse conditions)
+          nom
+          :actions (nreverse actions)
+          :profondeur 1
+          :metadata (when vegetarien '(:vegetarien t)))
+
+        (incf compteur)
+        (incf nb-compositions)))
+
+    ;; Charger les compositions avancées
+    (dolist (composition *donnees-compositions-avancees*)
+      (let* ((nom (first composition))
+             (ingredients (second composition))
+             (materiel (third composition))
+             (conditions nil)
+             (actions nil)
+             ;; Déterminer la profondeur selon les dépendances
+             (profondeur (if (or (eq nom 'sauce_bolognaise)) 2 1)))
+
+        ;; Convertir les ingrédients en conditions et actions
+        (dolist (ing ingredients)
+          (push (list (first ing) '>= (second ing)) conditions)
+          (push (list 'decremente-fait (first ing) (second ing)) actions))
+
+        ;; Ajouter le matériel en conditions
+        (dolist (mat materiel)
+          (push (list mat '= t) conditions))
+
+        ;; Créer la règle
+        (ajouter-regle
+          (intern (format nil "R~D" compteur))
+          (string-capitalize (substitute #\Space #\_ (string nom)))
+          (nreverse conditions)
+          nom
+          :actions (nreverse actions)
+          :profondeur profondeur
+          :metadata nil)
+
+        (incf compteur)
+        (incf nb-compositions)))
+
+    (format t "~D compositions intermédiaires chargées.~%" nb-compositions)))
 
 ;;; ----------------------------------------------------------------------------
 ;;; RECETTES FINALES (Profondeur 0)
 ;;; ----------------------------------------------------------------------------
 
 (defun charger-recettes-finales ()
-  "Charge les recettes finales complètes."
-  
-  ;; TODO: Implémenter le chargement des recettes finales
-  ;; Pour chaque recette, créer une règle avec ajouter-regle
-  
-  ;; Exemple de structure (à adapter) :
-  ;; Riz pilaf
-  ;; (ajouter-regle
-  ;;   'R1
-  ;;   "Riz pilaf"
-  ;;   '((oignon >= 1) (riz_long >= 300) (beurre >= 30) (eau >= 60)
-  ;;     (casserole = t)
-  ;;     (ou (recette_printemps = t) (recette_ete = t) 
-  ;;         (recette_automne = t) (recette_hiver = t))
-  ;;     (type_plat = t)
-  ;;     (recette_vegetarienne = t))
-  ;;   'riz_pilaf
-  ;;   :actions '((decremente oignon 1) (decremente riz_long 300)
-  ;;              (decremente beurre 30) (decremente eau 60))
-  ;;   :profondeur 0
-  ;;   :metadata '(:saisons (printemps ete automne hiver)
-  ;;               :type plat
-  ;;               :vegetarien t))
-  
-  ;; Céleri rôti
-  ;; (ajouter-regle ...)
-  
-  ;; Gratin dauphinois
-  ;; (ajouter-regle ...)
-  
-  ;; Fond blanc de volaille
-  ;; (ajouter-regle ...)
-  
-  ;; Quiche lorraine
-  ;; (ajouter-regle ...)
-  
-  ;; Tarte tatin
-  ;; (ajouter-regle ...)
-  
-  ;; Crêpe Suzette
-  ;; (ajouter-regle ...)
-  
-  ;; Salade composée
-  ;; (ajouter-regle ...)
-  
-  ;; Boeuf bourguignon
-  ;; (ajouter-regle ...)
-  
-  ;; Lasagne
-  ;; (ajouter-regle ...)
-  
-  ;; Omelette aux champignons
-  ;; (ajouter-regle ...)
-  
-  ;; Pâtes carbonara
-  ;; (ajouter-regle ...)
-  
-  ;; Soupe au potiron
-  ;; (ajouter-regle ...)
-  
-  ;; Cannellonis farcis
-  ;; (ajouter-regle ...)
-  )
+  "Charge les recettes finales complètes.
+   Parse les données depuis *donnees-recettes*."
+
+  (let ((compteur 1) ; Commence à R1
+        (nb-recettes 0))
+
+    ;; Parcourir toutes les recettes
+    (dolist (recette *donnees-recettes*)
+      (let* ((nom (first recette))
+             (ingredients (second recette))
+             (materiel (third recette))
+             (saisons (fourth recette))
+             (type-plat (fifth recette))
+             (vegetarien (sixth recette))
+             (conditions nil)
+             (actions nil)
+             (metadata nil))
+
+        ;; Convertir les ingrédients en conditions et actions
+        (dolist (ing ingredients)
+          (push (list (first ing) '>= (second ing)) conditions)
+          (push (list 'decremente-fait (first ing) (second ing)) actions))
+
+        ;; Ajouter le matériel en conditions
+        (dolist (mat materiel)
+          (push (list mat '= t) conditions))
+
+        ;; Construire les métadonnées
+        (when saisons
+          (setf metadata (append metadata (list :saisons saisons))))
+        (when type-plat
+          (setf metadata (append metadata (list :type type-plat))))
+        (when vegetarien
+          (setf metadata (append metadata (list :vegetarien t))))
+
+        ;; Créer la règle
+        (ajouter-regle
+          (intern (format nil "R~D" compteur))
+          (string-capitalize (substitute #\Space #\_ (string nom)))
+          (nreverse conditions)
+          nom
+          :actions (nreverse actions)
+          :profondeur 0
+          :metadata metadata)
+
+        (incf compteur)
+        (incf nb-recettes)))
+
+    (format t "~D recettes chargées.~%" nb-recettes)))
 
 ;;; ----------------------------------------------------------------------------
 ;;; UTILITAIRES DE DONNÉES
 ;;; ----------------------------------------------------------------------------
 
 (defun lister-toutes-recettes ()
-  "Retourne la liste de toutes les recettes disponibles.
-   Retour : liste de symboles"
-  ;; TODO: Implémenter le listage
-  ;; - Parser *base-regles*
-  ;; - Extraire les conclusions de profondeur 0
-  )
-
-(defun lister-tous-ingredients ()
-  "Retourne la liste de tous les ingrédients référencés.
-   Retour : liste de symboles"
-  ;; TODO: Implémenter le listage
-  ;; - Parser toutes les règles
-  ;; - Extraire ingrédients des conditions
-  ;; - Dédoublonner et trier
-  )
-
-(defun lister-tout-materiel ()
-  "Retourne la liste de tout le matériel référencé.
-   Retour : liste de symboles"
-  ;; TODO: Implémenter le listage
-  ;; - Parser toutes les règles
-  ;; - Extraire matériel des conditions
-  ;; - Dédoublonner et trier
-  )
+  "Retourne la liste de toutes les recettes disponibles triée.
+   Retour : liste de symboles (conclusions des recettes)"
+  (sort (loop for regle in *base-regles*
+    collect (regle-conclusion regle)) #'string<))

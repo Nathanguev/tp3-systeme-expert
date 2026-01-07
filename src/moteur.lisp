@@ -13,6 +13,15 @@
 (defvar *regles-declenchees* nil
   "Liste des règles déclenchées pendant l'inférence pour traçabilité.")
 
+(defvar *solutions-trouvees* nil
+  "Liste pour stocker toutes les combinaisons de menus valides trouvées")
+
+(defvar *trace-inference-avant* nil
+  "Stocke la copie de *regles-declenchees* au moment où une solution est trouvée.")
+
+(defvar *trace-echecs* nil
+  "Liste des tentatives échouées pendant le chaînage arrière.")
+
 (defvar *profondeur-max* 10
   "Profondeur maximale pour éviter les boucles infinies.")
 
@@ -21,38 +30,30 @@
 ;;; ----------------------------------------------------------------------------
 
 (defun chainage-avant ()
-  "Moteur d'inférence à chaînage avant (stratégie en largeur).
+"Moteur d'inférence à chaînage avant (stratégie en PROFONDEUR).
    Principe :
-     1. Partir des faits initiaux
-     2. Trouver toutes les règles applicables
-     3. Appliquer les règles et ajouter les conclusions
-     4. Répéter jusqu'à saturation (plus de règles applicables)
+     1. Trouver les règles applicables.
+     2. En choisir une, l'appliquer (descendre).
+     3. Revenir en arrière (backtrack) pour essayer les autres.
    Retour : liste des faits déduits (conclusions)"
-  ;; TODO: Implémenter le chaînage avant
-  ;; - Initialiser *regles-declenchees*
-  ;; - Boucle principale :
-  ;;   * Récupérer les règles candidates avec regles-candidates
-  ;;   * Trier par profondeur (compositions d'abord)
-  ;;   * Appliquer chaque règle applicable
-  ;;   * Enregistrer la règle dans *regles-declenchees*
-  ;;   * Continuer tant qu'il y a des règles applicables
-  ;; - Retourner les nouveaux faits déduits
-  )
 
-(defun chainage-avant-profondeur ()
-  "Moteur d'inférence à chaînage avant (stratégie en profondeur).
-   Principe :
-     1. Partir des faits initiaux
-     2. Trouver une règle applicable
-     3. Appliquer la règle
-     4. Réappliquer récursivement jusqu'à épuisement
-     5. Passer à la règle suivante
-   Retour : liste des faits déduits"
-  ;; TODO: Implémenter le chaînage avant en profondeur
-  ;; - Similaire à chainage-avant mais avec stratégie différente
-  ;; - Appliquer une règle puis relancer immédiatement
-  ;; - Utiliser une pile ou récursion pour la profondeur
-  )
+  (let ((candidates (regles-candidates)))
+    (setf candidates (remove-if (lambda (r) 
+      (member (regle-nom r) *regles-declenchees*)) candidates))
+
+    (when (null candidates)
+      (return-from chainage-avant))
+
+    (setf candidates (sort candidates (lambda (r1 r2)
+      (< (regle-profondeur r1) (regle-profondeur r2)))))
+
+    (dolist (regle candidates)
+      (appliquer-regle regle)
+      (push (regle-nom regle) *regles-declenchees*)
+      (pushnew regle *solutions-trouvees*)
+      (chainage-avant)
+      (pop *regles-declenchees*)
+      (desappliquer-regle regle))))
 
 ;;; ----------------------------------------------------------------------------
 ;;; CHAÎNAGE ARRIÈRE (Backward Chaining)
@@ -68,14 +69,9 @@
    Paramètres :
      - but : symbole du fait à prouver
    Retour : t si le but est prouvé, nil sinon"
-  ;; TODO: Implémenter le chaînage arrière
-  ;; - Vérifier si le but est déjà dans la base de faits
-  ;; - Sinon, chercher les règles concluant ce but
-  ;; - Pour chaque règle :
-  ;;   * Vérifier récursivement chaque condition
-  ;;   * Si toutes vraies, appliquer la règle
-  ;; - Gérer la profondeur maximale pour éviter boucles
-  )
+  (setf *regles-declenchees* nil)
+  (setf *trace-echecs* nil)
+  (prouver-but-recursif but 0))
 
 (defun prouver-but-recursif (but profondeur)
   "Fonction auxiliaire récursive pour le chaînage arrière.
@@ -83,74 +79,39 @@
      - but : fait à prouver
      - profondeur : profondeur courante de récursion
    Retour : t si prouvé, nil sinon"
-  ;; TODO: Implémenter la preuve récursive
-  ;; - Vérifier la profondeur maximale
-  ;; - Si but dans base de faits, retourner t
-  ;; - Sinon chercher règles et prouver conditions
-  )
 
-;;; ----------------------------------------------------------------------------
-;;; MOTEUR MIXTE
-;;; ----------------------------------------------------------------------------
+  ;; Vérifier la profondeur maximale et si le but est déjà prouvé
+  (when (or (>= profondeur *profondeur-max*) (obtenir-fait but))
+    (return-from prouver-but-recursif (obtenir-fait but)))
 
-(defun chainage-mixte (buts-prioritaires)
-  "Moteur d'inférence mixte combinant avant et arrière.
-   Principe :
-     1. Chaînage avant pour déduire faits évidents
-     2. Chaînage arrière pour prouver buts spécifiques
-   Paramètres :
-     - buts-prioritaires : liste de buts à prouver en priorité
-   Retour : liste des buts prouvés"
-  ;; TODO: Implémenter le chaînage mixte
-  ;; - Phase 1 : chainage-avant pour saturer
-  ;; - Phase 2 : chainage-arriere pour chaque but prioritaire
-  ;; - Retourner les buts prouvés avec succès
-  )
+  ;; Chercher les règles qui concluent ce but
+  (let ((regles-but (regles-pour-but but)))
+    (when (and (null regles-but) (zerop profondeur))
+      (push (list :but but :raison "Aucune règle ne conclut ce fait") *trace-echecs*)
+      (return-from prouver-but-recursif nil))
 
-;;; ----------------------------------------------------------------------------
-;;; RÉSOLUTION DE CONFLITS
-;;; ----------------------------------------------------------------------------
+    ;; Essayer chaque règle
+    (dolist (regle regles-but)
+      (let ((conditions-manquantes nil))
+        ;; Vérifier toutes les conditions
+        (dolist (condition (regle-conditions regle))
+          (unless (or (obtenir-fait (first condition))
+                     (prouver-but-recursif (first condition) (1+ profondeur)))
+            (push (list (first condition) (third condition)) conditions-manquantes)))
 
-(defun resoudre-conflit (regles)
-  "Résout les conflits entre plusieurs règles applicables.
-   Stratégies possibles :
-     - Priorité (règle avec priorité la plus haute)
-     - Spécificité (règle avec le plus de conditions)
-     - Ordre d'apparition (FIFO)
-   Paramètres :
-     - regles : liste de règles en conflit
-   Retour : règle sélectionnée"
-  ;; TODO: Implémenter la résolution de conflit
-  ;; - Appliquer stratégie de priorité d'abord
-  ;; - Puis profondeur (compositions avant finales)
-  ;; - Puis spécificité
-  ;; - En dernier recours, FIFO
-  )
-
-;;; ----------------------------------------------------------------------------
-;;; DÉTECTION DE BOUCLES ET TERMINAISON
-;;; ----------------------------------------------------------------------------
-
-(defun detecter-cycle-p (etat-courant historique)
-  "Détecte si l'état courant a déjà été visité (cycle).
-   Paramètres :
-     - etat-courant : état de la base de faits
-     - historique : liste des états précédents
-   Retour : t si cycle détecté, nil sinon"
-  ;; TODO: Implémenter la détection de cycle
-  ;; - Comparer l'état courant avec l'historique
-  ;; - Utiliser equal pour comparaison profonde
-  )
-
-(defun condition-terminaison-p ()
-  "Vérifie si le moteur doit s'arrêter.
-   Critères :
-     - Plus de règles applicables
-     - Nombre maximal d'itérations atteint
-     - Cycle détecté
-   Retour : t si doit s'arrêter, nil sinon"
-  ;; TODO: Implémenter la vérification de terminaison
-  )
+        ;; Si toutes les conditions sont prouvées, appliquer la règle
+        (if (null conditions-manquantes)
+            (progn
+              (appliquer-regle regle)
+              (push (cons (regle-nom regle) but) *regles-declenchees*)
+              (return-from prouver-but-recursif t))
+            ;; Sinon, enregistrer l'échec (seulement pour profondeur 0)
+            (when (zerop profondeur)
+              (push (list :but but
+                         :regle (regle-nom regle)
+                         :conditions-manquantes (nreverse conditions-manquantes))
+                    *trace-echecs*))))))
+  nil)
 
 ;;; ----------------------------------------------------------------------------
 ;;; TRAÇABILITÉ ET EXPLICATION
@@ -159,39 +120,44 @@
 (defun obtenir-trace-inference ()
   "Retourne la trace complète du raisonnement effectué.
    Retour : liste structurée de l'inférence"
-  ;; TODO: Implémenter la génération de trace
-  ;; - Retourner *regles-declenchees* avec contexte
-  ;; - Inclure faits initiaux, règles, faits déduits
-  )
+  (setf *trace-inference-avant* nil)
+  (dolist (solution *solutions-trouvees*)
+    (let ((nom (regle-nom solution))
+          (conclusion (regle-conclusion solution))
+          (conditions (regle-conditions solution)))
+      (push (list nom conditions conclusion) *trace-inference-avant*)))
+  *trace-inference-avant*)
+
+(defun format-liste-ingredients (conditions)
+  (let (conditions_lisible '())
+    (dolist (condition conditions)
+      (unless (eq (third condition) 'T)
+        (push (list (first condition) (third condition)) conditions_lisible)))
+  conditions_lisible))
 
 (defun afficher-trace-inference ()
   "Affiche la trace du raisonnement de manière formatée."
-  ;; TODO: Implémenter l'affichage de trace
-  ;; - Format lisible pour l'utilisateur
-  ;; - Numérotation des étapes
-  ;; - Indication des règles et conclusions
-  )
+  (let ((trace (obtenir-trace-inference))
+        (etape 1))
+    
+    (format t "~%=== TRACE DU RAISONNEMENT ===~%~%")
+    
+    (if (null trace)
+        (format t "  Aucune trace disponible. ~%")
 
-(defun expliquer-conclusion (fait)
-  "Explique comment un fait a été déduit (arbre de déduction).
-   Paramètres :
-     - fait : symbole du fait à expliquer
-   Retour : arbre de déduction sous forme de liste"
-  ;; TODO: Implémenter l'explication
-  ;; - Remonter la chaîne de déduction
-  ;; - Identifier la règle ayant conclu ce fait
-  ;; - Expliquer récursivement les conditions
-  )
-
-(defun generer-arbre-raisonnement (fait)
-  "Génère un arbre de raisonnement pour un fait.
-   Paramètres :
-     - fait : symbole du fait racine
-   Retour : structure d'arbre"
-  ;; TODO: Implémenter la génération d'arbre
-  ;; - Représentation hiérarchique du raisonnement
-  ;; - Format exploitable pour visualisation
-  )
+        (dolist (ligne trace)
+          (let ((nom (first ligne))
+                (conditions (second ligne))
+                (conclusion (third ligne)))
+            
+            ;; LIGNE 1 : Le résumé de l'action
+            (format t "  ~A Étape ~D : Règle ~A -> Fait ~A~%" 
+                    (format-ok) etape nom conclusion)
+            
+            ;; LIGNE 2 : Le détail des ingrédients utilisés
+            (format t "       Used : [ ~A ]~%~%" 
+                    (format-liste-ingredients conditions))
+            (incf etape))))))
 
 ;;; ----------------------------------------------------------------------------
 ;;; UTILITAIRES
@@ -199,13 +165,7 @@
 
 (defun reinitialiser-moteur ()
   "Réinitialise le moteur d'inférence (nettoie la traçabilité)."
-  (setf *regles-declenchees* nil))
-
-(defun statistiques-inference ()
-  "Retourne des statistiques sur l'inférence effectuée.
-   Retour : plist avec :nb-regles :nb-faits :profondeur-max-atteinte etc."
-  ;; TODO: Implémenter les statistiques
-  ;; - Compter règles déclenchées
-  ;; - Compter faits déduits
-  ;; - Calculer profondeur maximale atteinte
-  )
+  (setf *regles-declenchees* nil)
+  (setf *solutions-trouvees* nil)
+  (setf *trace-inference-avant* nil)
+  (setf *trace-echecs* nil))

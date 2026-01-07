@@ -1,0 +1,34 @@
+# EditorConfig - Configuration d'indentation pour le projet
+# https://editorconfig.org
+
+# Configuration racine
+root = true
+
+# Configuration par défaut pour tous les fichiers
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Fichiers Lisp (Common Lisp)
+[*.lisp]
+indent_style = space
+indent_size = 2
+
+# Fichiers Markdown
+[*.md]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
+
+# Fichiers de configuration
+[*.{json,yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# Makefiles doivent utiliser des tabs
+[Makefile]
+indent_style = tab

@@ -23,17 +23,15 @@
   "Point d'entrée principal du système expert culinaire.
    Lance l'interface utilisateur et coordonne l'exécution complète."
   (format t "~%")
-  (format t "========================================~%")
-  (format t " SYSTÈME EXPERT CULINAIRE - IA01 TP3~%")
-  (format t "========================================~%")
+  (format t "=======================================~%")
+  (format t "  SYSTÈME EXPERT CULINAIRE - IA01 TP3  ~%")
+  (format t "=======================================~%")
   (format t "~%")
-  
+
   ;; Initialisation de la base de faits
   (initialiser-base-faits)
-  
   ;; Chargement des règles depuis les données
   (charger-recettes)
-  
   ;; Lancement de l'interface utilisateur
   (interface-principale))
 
