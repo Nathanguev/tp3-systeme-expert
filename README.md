@@ -2,78 +2,48 @@
 
 Système expert d'ordre 0+ pour la recommandation de recettes culinaires basé sur les ingrédients et le matériel disponibles.
 
-## Description
-
-Ce système expert aide les utilisateurs à identifier les recettes réalisables en fonction de :
-
-- **Ingrédients disponibles** (avec quantités)
-- **Matériel de cuisine** disponible
-- **Filtres optionnels** : végétarien, saisons, type de plat (entrée, plat, dessert)
-
-## Structure du projet
+## Architecture
 
 ```txt
 tp3-systeme-expert/
-├── main.lisp              # Point d'entrée principal
+├── main.lisp                  # Point d'entrée principal
 ├── src/
-│   ├── base-faits.lisp    # Base de faits (ingrédients, matériel)
-│   ├── base-regles.lisp   # Base de règles (recettes)
-│   ├── moteur.lisp        # Moteurs d'inférence
-│   └── interface.lisp     # Interface utilisateur
+│   ├── base-faits.lisp        # Gestion de la base de faits
+│   ├── base-regles.lisp       # Données brutes des recettes
+│   ├── gestion-regles.lisp    # Gestion de la base de règles
+│   ├── moteur.lisp            # Moteurs d'inférence
+│   └── interface.lisp         # Interface utilisateur
 ├── donnees/
-│   └── recettes.lisp      # Données des recettes
+│   └── recettes.lisp          # Parsing et chargement des recettes
 ├── tests/
-│   └── scenario-1.lisp    # Scénarios de test
-└── docs/                  # Documentation et rapports
+│   └── scenario-1.lisp        # Scénarios de test
+└── docs/                      # Documentation et rapports
 ```
 
-## Fonctionnalités
+### Composants principaux
 
-- **Moteur d'inférence** : Chaînage avant/arrière pour déduire les recettes réalisables
-- **Vérification stricte** : Contrôle des quantités d'ingrédients et du matériel requis
-- **Filtrage intelligent** : Application de critères optionnels (saison, type, régime)
-- **Traçabilité** : Explication des règles déclenchées et des exclusions
-
-## Installation
-
-Prérequis : Common Lisp (SBCL)
-
-```bash
-# Charger le système
-sbcl --load main.lisp
-
-# Ou
-sbcl --script main.lisp
-```
+- **Base de faits** : Stocke les ingrédients disponibles, matériel, filtres actifs
+- **Base de règles** : Contient les règles de composition des recettes (ordre 0+)
+- **Moteur d'inférence** : Chaînage avant / arrière pour déduire les recettes possibles
+- **Interface** : Interaction en ligne de commande avec l'utilisateur
 
 ## Utilisation
 
-```lisp
-; Lancer le système expert
-(load "main.lisp")
-
-; Exemple d'utilisation (à adapter selon l'implémentation)
-; Le système demande les ingrédients disponibles et propose les recettes
+```bash
+# Lancer le système avec SBCL
+sbcl --script main.lisp
 ```
 
-## Exemples de recettes
+Le système guide l'utilisateur à travers :
 
-Le système inclut plusieurs recettes comme :
-
-- Riz pilaf (végétarien, toutes saisons)
-- Gratin dauphinois (végétarien, automne/hiver)
-- Quiche lorraine (printemps/été/automne/hiver)
-- Tarte tatin (végétarien, dessert, automne/hiver)
-
-## Auteurs
-
-Projet réalisé dans le cadre du cours IA01 - UTC semestre A25
-
-## Licence
-
-Projet académique - UTC
+1. Saisie des ingrédients
+2. Choix des filtres (saison, type, végétarien)
+3. Affichage des recettes réalisables
+4. Explication du raisonnement
 
 ## Équipe
+
+Projet réalisé dans le cadre du cours IA01 - UTC A25
 
 - Nathan GUEVARA
 - Loïc ZHOU
