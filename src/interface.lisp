@@ -22,9 +22,7 @@
     (format t "   4. Lancer la recherche de recettes (chaînage avant)~%")
     (format t "   5. Vérifier une recette spécifique (chaînage arrière)~%")
     (format t "   6. Afficher la base de faits actuelle~%")
-    (format t "   7. Afficher la trace du raisonnement~%")
-    (format t "   8. Afficher les statistiques~%")
-    (format t "   9. Réinitialiser le système~%")
+    (format t "   7. Réinitialiser le système~%")
     (format t "   0. Quitter~%")
     (format t "~%Votre choix : ")
     (finish-output)
@@ -64,23 +62,15 @@
          (afficher-base-faits)
          (pause))
 
-        ;; Afficher trace
-        ((eql choix 7)
-         (afficher-trace-complete))
-
-        ;; Afficher statistiques
-        ((eql choix 8)
-         (afficher-statistiques))
-
         ;; Réinitialiser
-        ((eql choix 9)
+        ((eql choix 7)
          (initialiser-base-faits)
          (reinitialiser-moteur)
          (format t "~%Système réinitialisé.~%"))
 
         ;; Choix invalide
         (t
-         (format t "~%Choix invalide. Veuillez entrer un nombre entre 0 et 9.~%")
+         (format t "~%Choix invalide. Veuillez entrer un nombre entre 0 et 7.~%")
          (pause))))))
 
 ;;; ----------------------------------------------------------------------------
